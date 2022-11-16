@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+"""
 # TC2008B. Sistemas Multiagentes y Gráficas Computacionales
 # server.py | 2022
 # Salvador Federico Milanes Braniff
@@ -7,7 +9,7 @@
 
 # Python flask server to interact with Unity. Based on the code provided by Sergio Ruiz.
 # Octavio Navarro. October 2021
-
+"""
 from flask import Flask, request, jsonify
 from RandomAgents import *
 
