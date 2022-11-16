@@ -1,7 +1,15 @@
+# -*- coding: utf-8 -*-
+"""
 # TC2008B. Sistemas Multiagentes y Gráficas Computacionales
+# server.py | 2022
+# Salvador Federico Milanes Braniff
+# Juan Muniain Otero
+# Miguel Bustamante Perez
+# Manuel Barrera Lopez Portillo
+
 # Python flask server to interact with Unity. Based on the code provided by Sergio Ruiz.
 # Octavio Navarro. October 2021
-
+"""
 from flask import Flask, request, jsonify
 from RandomAgents import *
 
@@ -51,6 +59,15 @@ def getPackages():
         packagePositions = [{"id": str(a.unique_id), "x": x, "y":1, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, PackageAgent)]
         # print(packagePositions)
         return jsonify({'positions':packagePositions})
+
+@app.route('/getDepots', methods=['GET'])
+def getDepots():
+    global randomModel
+
+    if request.method == 'GET':
+        depotPositions = [{"id": str(a.unique_id), "x": x, "y":1, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, DepotAgent)]
+        print(depotPositions)
+        return jsonify({'positions':depotPositions})
 
 @app.route('/getObstacles', methods=['GET'])
 def getObstacles():

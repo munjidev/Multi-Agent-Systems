@@ -1,6 +1,13 @@
-﻿// TC2008B. Sistemas Multiagentes y Gráficas Computacionales
-// C# client to interact with Python. Based on the code provided by Sergio Ruiz.
-// Octavio Navarro. October 2021
+﻿/*
+TC2008B. Sistemas Multiagentes y Gráficas Computacionales
+AgentController.cs | 2022
+Salvador Federico Milanes Braniff
+Juan Muniain Otero
+Miguel Bustamante Perez
+Manuel Barrera Lopez Portillo
+
+Script to control the agents in the scene.
+*/
 
 using System;
 using System.Collections;
@@ -38,7 +45,7 @@ public class AgentController : MonoBehaviour
     // private string url = "https://agents.us-south.cf.appdomain.cloud/";
     string serverUrl = "http://localhost:8585";
     string getAgentsEndpoint = "/getAgents";
-    //string getPortsEndpoint = "/getPorts";
+    string getDepotsEndpoint = "/getDepots";
     string getPackagesEndpoint = "/getPackages";
     string getObstaclesEndpoint = "/getObstacles";
     string sendConfigEndpoint = "/init";
