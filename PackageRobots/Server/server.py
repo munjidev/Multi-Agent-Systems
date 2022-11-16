@@ -1,4 +1,10 @@
 # TC2008B. Sistemas Multiagentes y Gráficas Computacionales
+# server.py | 2022
+# Salvador Federico Milanes Braniff
+# Juan Muniain Otero
+# Miguel Bustamante Perez
+# Manuel Barrera Lopez Portillo
+
 # Python flask server to interact with Unity. Based on the code provided by Sergio Ruiz.
 # Octavio Navarro. October 2021
 

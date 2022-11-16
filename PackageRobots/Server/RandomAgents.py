@@ -1,10 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Modelos de Agente y del medio ambiente
-Movimiento aleatorio del auto en el grid
+TC2008B. Sistemas Multiagentes y Gráficas Computacionales
+RandomAgents.py | 2022
+Salvador Federico Milanes Braniff
+Juan Muniain Otero
+Miguel Bustamante Perez
+Manuel Barrera Lopez Portillo
 
-Solución al reto de TC2008B semestre AgostoDiciembre 2021
-Autor: Jorge Ramírez Uresti, Octavio Navarro
+Random agents model. Based on the code provided by Sergio Ruiz & Octavio Navarro.
+This model consists of a grid with a number of agents and packages. 
+The agents move randomly and can pick up a package if they are in the same
+cell. The agents can drop a package if they are in the same cell as
+the depot. The depot is a special cell that is always in the same position and can store X packages.
 """
 
 from mesa import Agent, Model
