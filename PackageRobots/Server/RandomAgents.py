@@ -13,7 +13,7 @@ The agents move randomly and can pick up a package if they are in the same
 cell. The agents can drop a package if they are in the same cell as
 the depot. The depot is a special cell that is always in the same position and can store X packages.
 """
-
+import math
 from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.space import Grid
@@ -85,9 +85,9 @@ class PackageAgent(Agent):
     def step(self):
         pass
 
-class PortAgent(Agent):
+class DepotAgent(Agent):
     """
-    Port agent. Port can receive up to X packages, stacked on top of each other.
+    Depot agent. Depot can receive up to X packages, stacked on top of each other.
     """
     def __init__(self, unique_id, typeStr, model):
         super().__init__(unique_id, model)
@@ -106,6 +106,7 @@ class RandomModel(Model):
     def __init__(self, N, P, width, height):
         self.num_agents = N
         self.num_packages = P
+        self.num_depots = math.ceil(self.num_packages/5)
         self.grid = Grid(width,height,torus = False) 
         self.schedule = RandomActivation(self)
         self.running = True
@@ -140,10 +141,17 @@ class RandomModel(Model):
                 pos = pos_gen(self.grid.width, self.grid.height)
             self.grid.place_agent(b, pos)
 
-        # Add the ports at chosen locations
-        for i in range(self.num_ports):
-            c = PortAgent(i+3000, "PRT", self)
+        # Add the depots at chosen locations
+        for i in range(self.num_depots):
+            c = DepotAgent(i+3000, "DPT", self)
             self.schedule.add(c)
+
+            pos_gen = lambda w, h: (self.random.randrange(w), self.random.randrange(h))
+            pos = pos_gen(self.grid.width, self.grid.height)
+            while (not self.grid.is_cell_empty(pos)):
+                pos = pos_gen(self.grid.width, self.grid.height)
+            self.grid.place_agent(c, pos)
+
     def step(self):
         '''Advance the model by one step.'''
         self.schedule.step()

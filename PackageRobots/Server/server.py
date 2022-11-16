@@ -60,6 +60,15 @@ def getPackages():
         print(packagePositions)
         return jsonify({'positions':packagePositions})
 
+@app.route('/getDepots', methods=['GET'])
+def getDepots():
+    global randomModel
+
+    if request.method == 'GET':
+        depotPositions = [{"id": str(a.unique_id), "x": x, "y":1, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, DepotAgent)]
+        print(depotPositions)
+        return jsonify({'positions':depotPositions})
+
 @app.route('/getObstacles', methods=['GET'])
 def getObstacles():
     global randomModel
