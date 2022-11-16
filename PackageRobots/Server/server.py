@@ -49,7 +49,7 @@ def getPackages():
 
     if request.method == 'GET':
         packagePositions = [{"id": str(a.unique_id), "x": x, "y":1, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, PackageAgent)]
-        print(packagePositions)
+        # print(packagePositions)
         return jsonify({'positions':packagePositions})
 
 @app.route('/getObstacles', methods=['GET'])
