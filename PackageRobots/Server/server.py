@@ -60,8 +60,8 @@ def getPackages():
     global randomModel
 
     if request.method == 'GET':
-        packagePositions = [{"id": str(a.unique_id), "x": x, "y":0.3, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, PackageAgent)]
-        print(packagePositions)
+        packagePositions = [{"id": str(a.unique_id), "x": x, "y":1, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, PackageAgent)]
+        
         return jsonify({'positions':packagePositions})
 
 @app.route('/getDepots', methods=['GET'])
