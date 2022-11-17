@@ -88,13 +88,13 @@ class RandomAgent(Agent):
         # Pick up package if in same cell
         if(len(self.model.grid.get_cell_list_contents(self.pos)) > 0):
             print("Larger than 0")
-            for obj in self.model.grid.get_cell_list_contents(self.pos):
-                print(obj.typeStr)
-                if(obj.typeStr == "PKG"):
-                    self.hasPackage = True
-                    self.model.grid.remove_agent(obj)
-                    print(f"Agent {self.unique_id} picked up package {obj.unique_id}")
-                    break
+            # for obj in self.model.grid.get_cell_list_contents(self.pos):
+            #     print(obj.typeStr)
+            #     if(obj.typeStr == "PKG"):
+            #         self.hasPackage = True
+            #         self.model.grid.remove_agent(obj)
+            #         print(f"Agent {self.unique_id} picked up package {obj.unique_id}")
+            #         break
 
     def seekDepot(self):
         """
