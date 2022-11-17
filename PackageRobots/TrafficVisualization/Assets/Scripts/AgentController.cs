@@ -50,21 +50,22 @@ public class AgentController : MonoBehaviour
     string getObstaclesEndpoint = "/getObstacles";
     string sendConfigEndpoint = "/init";
     string updateEndpoint = "/update";
-    AgentsData agentsData, portsData, packagesData, obstacleData;
+    AgentsData agentsData, depotsData, packagesData, obstacleData;
     Dictionary<string, GameObject> agents;
     Dictionary<string, Vector3> prevPositions, currPositions;
 
     bool updated = false, started = false;
 
-    public GameObject agentPrefab, obstaclePrefab, packagePrefab, floor;
+    public GameObject agentPrefab, obstaclePrefab, packagePrefab, depotPrefab, floor;
     public int NAgents, NPackages, width, height;
     public float timeToUpdate = 5.0f;
+    private int NDepots;
     private float timer, dt;
 
     void Start()
     {
         agentsData = new AgentsData();
-        portsData = new AgentsData();
+        depotsData = new AgentsData();
         packagesData = new AgentsData();
         obstacleData = new AgentsData();
 
@@ -121,8 +122,10 @@ public class AgentController : MonoBehaviour
             Debug.Log(www.error);
         else 
         {
+            // These coroutines will update the data of the agents, depots and packages
             StartCoroutine(GetAgentsData());
-            StartCoroutine(GetPackagesData());
+            //StartCoroutine(GetPackagesData());
+            //StartCoroutine(GetDepotsData());
         }
     }
 
@@ -132,7 +135,7 @@ public class AgentController : MonoBehaviour
 
         form.AddField("NAgents", NAgents.ToString());
         form.AddField("NPackages", NPackages.ToString());
-        // form.AddField("NPorts", NPorts.ToString());
+        form.AddField("NDepots", NDepots.ToString());
         form.AddField("width", width.ToString());
         form.AddField("height", height.ToString());
 
@@ -153,17 +156,18 @@ public class AgentController : MonoBehaviour
             Debug.Log("Getting Packages positions");
             StartCoroutine(GetPackagesData());
             StartCoroutine(GetObstacleData());
+            StartCoroutine(GetDepotsData());
         }
     }
 
-    IEnumerator GetAgentsData() 
+    IEnumerator GetAgentsData()
     {
         UnityWebRequest www = UnityWebRequest.Get(serverUrl + getAgentsEndpoint);
         yield return www.SendWebRequest();
  
         if (www.result != UnityWebRequest.Result.Success)
             Debug.Log(www.error);
-        else 
+        else
         {
             agentsData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
 
@@ -210,39 +214,25 @@ public class AgentController : MonoBehaviour
         }
     }
 
-    // IEnumerator GetPortsData()
-    // {
-    //     UnityWebRequest www = UnityWebRequest.Get(serverUrl + getAgentsEndpoint);
-    //     yield return www.SendWebRequest();
+    IEnumerator GetDepotsData()
+    {
+        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getDepotsEndpoint);
+        yield return www.SendWebRequest();
  
-    //     if (www.result != UnityWebRequest.Result.Success)
-    //         Debug.Log(www.error);
-    //     else 
-    //     {
-    //         agentsData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
+        if (www.result != UnityWebRequest.Result.Success)
+            Debug.Log(www.error);
+        else 
+        {
+            depotsData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
+            //Debug.Log(www.downloadHandler.text);
+            Debug.Log(depotsData.positions);
 
-    //         foreach(AgentData agent in agentsData.positions)
-    //         {
-    //             Vector3 newAgentPosition = new Vector3(agent.x, agent.y, agent.z);
-
-    //                 if(!started)
-    //                 {
-    //                     prevPositions[agent.id] = newAgentPosition;
-    //                     agents[agent.id] = Instantiate(agentPrefab, newAgentPosition, Quaternion.identity);
-    //                 }
-    //                 else
-    //                 {
-    //                     Vector3 currentPosition = new Vector3();
-    //                     if(currPositions.TryGetValue(agent.id, out currentPosition))
-    //                         prevPositions[agent.id] = currentPosition;
-    //                     currPositions[agent.id] = newAgentPosition;
-    //                 }
-    //         }
-
-    //         updated = true;
-    //         if(!started) started = true;
-    //     }
-    // }
+            foreach(AgentData depot in depotsData.positions)
+            {
+                Instantiate(depotPrefab, new Vector3(depot.x, depot.y, depot.z), Quaternion.identity);
+            }
+        }
+    }
 
     IEnumerator GetObstacleData() 
     {
