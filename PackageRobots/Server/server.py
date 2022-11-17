@@ -10,6 +10,7 @@
 # Python flask server to interact with Unity. Based on the code provided by Sergio Ruiz.
 # Octavio Navarro. October 2021
 """
+import math
 from flask import Flask, request, jsonify
 from RandomAgents import *
 
@@ -27,18 +28,21 @@ app = Flask("Traffic example")
 
 @app.route('/init', methods=['POST', 'GET'])
 def initModel():
-    global currentStep, randomModel, number_agents, number_packages, width, height
+    global currentStep, randomModel, number_agents, number_packages, number_depots, width, height
 
     if request.method == 'POST':
+
         number_agents = int(request.form.get('NAgents'))
         number_packages = int(request.form.get('NPackages'))
+        number_depots = int(math.ceil(number_packages/5))
+
         width = int(request.form.get('width'))
         height = int(request.form.get('height'))
         currentStep = 0
 
         print(request.form)
-        print(number_agents, number_packages, width, height)
-        randomModel = RandomModel(number_agents, number_packages, width, height)
+        print(number_agents, number_packages, number_depots, width, height)
+        randomModel = RandomModel(number_agents, number_packages, number_depots, width, height)
 
         return jsonify({"message":"Parameters recieved, model initiated."})
 
@@ -47,7 +51,7 @@ def getAgents():
     global randomModel
 
     if request.method == 'GET':
-        agentPositions = [{"id": str(a.unique_id), "x": x, "y":1, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, RandomAgent)]
+        agentPositions = [{"id": str(a.unique_id), "x": x, "y":0.5, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, RandomAgent)]
 
         return jsonify({'positions':agentPositions})
 
@@ -56,7 +60,7 @@ def getPackages():
     global randomModel
 
     if request.method == 'GET':
-        packagePositions = [{"id": str(a.unique_id), "x": x, "y":1, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, PackageAgent)]
+        packagePositions = [{"id": str(a.unique_id), "x": x, "y":0.3, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, PackageAgent)]
         print(packagePositions)
         return jsonify({'positions':packagePositions})
 
@@ -65,7 +69,7 @@ def getDepots():
     global randomModel
 
     if request.method == 'GET':
-        depotPositions = [{"id": str(a.unique_id), "x": x, "y":1, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, DepotAgent)]
+        depotPositions = [{"id": str(a.unique_id), "x": x, "y":0.01, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, DepotAgent)]
         print(depotPositions)
         return jsonify({'positions':depotPositions})
 
@@ -74,7 +78,7 @@ def getObstacles():
     global randomModel
 
     if request.method == 'GET':
-        carPositions = [{"id": str(a.unique_id), "x": x, "y":1, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, ObstacleAgent)]
+        carPositions = [{"id": str(a.unique_id), "x": x, "y":0.5, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, ObstacleAgent)]
 
         return jsonify({'positions':carPositions})
 
