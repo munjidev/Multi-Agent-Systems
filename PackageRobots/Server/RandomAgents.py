@@ -103,10 +103,10 @@ class RandomModel(Model):
         N: Number of agents in the simulation
         height, width: The size of the grid to model
     """
-    def __init__(self, N, P, width, height):
+    def __init__(self, N, P, D, width, height):
         self.num_agents = N
         self.num_packages = P
-        self.num_depots = math.ceil(self.num_packages/5)
+        self.num_depots = D
         self.grid = Grid(width,height,torus = False) 
         self.schedule = RandomActivation(self)
         self.running = True
