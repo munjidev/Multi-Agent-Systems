@@ -132,8 +132,6 @@ public class AgentController : MonoBehaviour
         {
             // These coroutines will update the data of the agents, depots and packages
             StartCoroutine(GetAgentsData());
-            //StartCoroutine(GetPackagesData()); // NOT WORKING !
-            //StartCoroutine(GetDepotsData());
         }
     }
 
@@ -213,31 +211,9 @@ public class AgentController : MonoBehaviour
         else 
         {
             packagesData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
-            //Debug.Log(www.downloadHandler.text);
+            
             Debug.Log(packagesData.positions);
 
-            // foreach(AgentData package in packagesData.positions)
-            // {
-            //     Vector3 newPackagePosition = new Vector3(package.x, package.y, package.z);
-                
-            //     if(!started)
-            //     {
-            //         prevPositions[package.id] = newPackagePosition;
-            //         agents[package.id] = Instantiate(packagePrefab, newPackagePosition, Quaternion.identity);
-            //     }
-            //     else
-            //     {
-            //         Vector3 currentPosition = new Vector3();
-            //         if(currPositions.TryGetValue(package.id, out currentPosition))
-            //             prevPositions[package.id] = currentPosition;
-            //         currPositions[package.id] = newPackagePosition;
-            //     }
-            // }
-
-            // updated = true;
-            // if(!started) started = true;
-
-            // Updatable not working
             foreach(AgentData package in packagesData.positions)
             {
                 Instantiate(packagePrefab, new Vector3(package.x, package.y, package.z), Quaternion.identity);
