@@ -18,6 +18,9 @@ from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.space import Grid
 
+# Global dictionary with all existing depot locations
+depots = {}
+
 class RandomAgent(Agent):
     """
     Agent that moves randomly.
@@ -43,6 +46,7 @@ class RandomAgent(Agent):
         Moves the agent according to its current state.
         """
         # Check if robot is carrying a package
+        print(f"Click, {self.hasPackage}")
         if(self.hasPackage):
             self.seekDepot()
         else:
@@ -53,94 +57,95 @@ class RandomAgent(Agent):
         Moves the agent to a package if in neighboring cells.
         If no package is found, the agent moves randomly.
         """
-        print(f"Agent {self.unique_id} is seeking package")
+        print("Seeking package")
+        # print(f"Agent {self.unique_id} is seeking package")
         # Get the neighbors of the agent
         possible_steps = self.model.grid.get_neighborhood(
             self.pos,
             moore=False, # Boolean for whether to use Moore neighborhood (including diagonals) or Von Neumann (only up/down/left/right).
             include_center=True)
 
-        # Check for packages in surrounding 4 cells
-        availableSpaces = []
+        # Check if there is a package in the neighbors
         for pos in possible_steps:
-            if(len(self.model.grid.get_cell_list_contents(pos)) > 0 ):
-                if (self.model.grid.get_cell_list_contents(pos)[0].typeStr == "PKG"):
-                    availableSpaces.append(True)
-                    print(f"Agent {self.unique_id} saw a package at {pos}")
-                else:
-                    availableSpaces.append(False)
-            elif(self.model.grid.is_cell_empty(pos)):
-                availableSpaces.append(True)
-            else:
-                availableSpaces.append(False)
-        next_moves = [p for p,f in zip(possible_steps, availableSpaces) if f == True]
-
-        # Prioritize packages when choosing where to move
-        packages = [p for p in next_moves if (len(self.model.grid.get_cell_list_contents(p))> 0) and (self.model.grid.get_cell_list_contents(p)[0].typeStr == "PKG")]
-
-        if(len(packages) > 0):
-            next_moves = packages
-
-        # If there are no packages in the surrounding cells, move randomly
-        if(len(next_moves) > 0):
-            next_move = self.random.choice(next_moves)
-            self.model.grid.move_agent(self, next_move)
-
-        # Pick up package if in same cell
-        if(len(self.model.grid.get_cell_list_contents(self.pos)) > 0):
-            print(len(self.model.grid.get_cell_list_contents(self.pos)))
-            # for obj in self.model.grid.get_cell_list_contents(self.pos):
-            #     print(obj.typeStr)
-            #     if(obj.typeStr == "PKG"):
-            #         self.hasPackage = True
-            #         self.model.grid.remove_agent(obj)
-            #         print(f"Agent {self.unique_id} picked up package {obj.unique_id}")
-            #         break
+            # If there is a package, move to it
+            if(len(self.model.grid.get_cell_list_contents(pos)) > 0):
+                if(self.model.grid.get_cell_list_contents(pos)[0].typeStr == "PKG"):
+                    self.model.grid.move_agent(self, pos)
+                    self.hasPackage = True
+                    return
+        
+        # # If no package is found, move randomly
+        self.random_move()
 
     def seekDepot(self):
         """
-        Check all depot locations and move to the closest one.
-        If there are two depots with the same distance, choose depot
-        with fewer packages.
-        If there are two depots with the same distance and same number
-        of packages, choose randomly.
+        Check all depot locations and approach the closest one.
         """
-        print(f"Agent {self.unique_id} is seeking depot")
-        # Get depot locations on grid
-        depots = [p for p in self.model.grid.coord_iter() if (len(self.model.grid.get_cell_list_contents(p[1]))> 0) and (self.model.grid.get_cell_list_contents(p[1])[0].typeStr == "DPT")]
+        print("Seeking depot")
+        # Read the global dictionary with all depots, and get the closest one to the agent
+        agentPositon = self.pos
+        closestDepotPosition = None
+        for val in depots.values():
+            print(f"Depot: {val}")
+            if(closestDepotPosition == None):
+                closestDepotPosition = val
+            else:
+                if(self.distance(agentPositon, val) < self.distance(agentPositon, closestDepotPosition)):
+                    closestDepotPosition = val          
 
-        # Check distance relative to each depot
-        distances = []
-        for d in depots:
-            distances.append(math.sqrt((d[1][0] - self.pos[0])**2 + (d[1][1] - self.pos[1])**2))
+        # If the agent is in the same cell as the depot, drop the package
+        if(self.pos == closestDepotPosition):
+            self.hasPackage = False
+            return
         
-        # Get depot with minimum distance
-        minDist = min(distances)
-        minDepots = [d for d in depots if math.sqrt((d[1][0] - self.pos[0])**2 + (d[1][1] - self.pos[1])**2) == minDist]
+        # Move to the closest depot by one step
+        self.moveTowards(closestDepotPosition)
 
-        # If there are two depots with the same distance, choose depot with fewer packages
-        if(len(minDepots) > 1):
-            minPackages = minDepots[0][0].numPackages
-            minDepots = [d for d in minDepots if d[0].numPackages == minPackages]
+    def moveTowards(self, targetPosition):
+        agentX = self.pos[0]
+        agentY = self.pos[1]
+        print(f"Rob: {self.pos}")
+        depotX = int(targetPosition[0])
+        depotY = int(targetPosition[1])
+        print(f"Dep: {targetPosition}")
+        possible_steps = []
+        if(agentX < depotX):
+            possible_steps.append((agentX + 1, agentY))
+        elif(agentX > depotX):
+            possible_steps.append((agentX - 1, agentY))
 
-        # If there are two depots with the same distance and same number of packages, choose randomly
-        if(len(minDepots) > 1):
-            minDepots = self.random.choice(minDepots)
+        if(agentY < depotY):
+            possible_steps.append((agentX, agentY + 1))
+        elif(agentY > depotY):
+            possible_steps.append((agentX, agentY - 1))
 
-        # Move to closest depot
-        self.model.grid.move_agent(self, minDepots[1])
+        if len(possible_steps) > 0:
+            # Choose a random direction
+            new_position = self.random.choice(possible_steps)
 
-        # Drop package if in same cell
-        if(len(self.model.grid.get_cell_list_contents(self.pos)) > 0):
-            if (self.model.grid.get_cell_list_contents(self.pos)[0].typeStr == "DPT"):
-                self.model.grid.get_cell_list_contents(self.pos)[0].drop(self)
+            # Move the agent
+            self.model.grid.move_agent(self, new_position)
 
+    def random_move(self):
+        """
+        Move the agent to a random position.
+        """
+        # Get the neighbors of the agent
+        possible_steps = self.model.grid.get_neighborhood(
+            self.pos,
+            moore=False, # Boolean for whether to use Moore neighborhood (including diagonals) or Von Neumann (only up/down/left/right).
+            include_center=True)
+
+        # Choose a random direction
+        new_position = self.random.choice(possible_steps)
+
+        # Move the agent
+        self.model.grid.move_agent(self, new_position)
 
     def step(self):
         """ 
         Determines the new direction it will take, and then moves
         """
-        print("Click")
         self.move()
 
 class ObstacleAgent(Agent):
@@ -221,22 +226,24 @@ class RandomModel(Model):
             a = RandomAgent(i+1000, "ROB", self) 
             self.schedule.add(a)
 
-            pos_gen = lambda w, h: (self.random.randrange(w), self.random.randrange(h))
-            pos = pos_gen(self.grid.width, self.grid.height)
-            while (not self.grid.is_cell_empty(pos)):
-                pos = pos_gen(self.grid.width, self.grid.height)
-            self.grid.place_agent(a, pos)
+            # pos_gen = lambda w, h: (self.random.randrange(w), self.random.randrange(h))
+            # pos = pos_gen(self.grid.width, self.grid.height)
+            # while (not self.grid.is_cell_empty(pos)):
+            #     pos = pos_gen(self.grid.width, self.grid.height)
+            # self.grid.place_agent(a, pos)
+            self.grid.place_agent(a, (3,3))
 
         # Add the package to a random empty grid cell
         for i in range(self.num_packages):
             b = PackageAgent(i+2000, "PKG", self) 
             self.schedule.add(b)
 
-            pos_gen = lambda w, h: (self.random.randrange(w), self.random.randrange(h))
-            pos = pos_gen(self.grid.width, self.grid.height)
-            while (not self.grid.is_cell_empty(pos)):
-                pos = pos_gen(self.grid.width, self.grid.height)
-            self.grid.place_agent(b, pos)
+            # pos_gen = lambda w, h: (self.random.randrange(w), self.random.randrange(h))
+            # pos = pos_gen(self.grid.width, self.grid.height)
+            # while (not self.grid.is_cell_empty(pos)):
+            #     pos = pos_gen(self.grid.width, self.grid.height)
+            # self.grid.place_agent(b, pos)
+            self.grid.place_agent(b, (4,3))
 
         # Add the depots at chosen locations
         for i in range(self.num_depots):
@@ -247,6 +254,8 @@ class RandomModel(Model):
             pos = pos_gen(self.grid.width, self.grid.height)
             while (not self.grid.is_cell_empty(pos)):
                 pos = pos_gen(self.grid.width, self.grid.height)
+            # Add depot location to the global dictionary
+            depots[f"{i+3000}"] = pos
             self.grid.place_agent(c, pos)
 
     def step(self):
