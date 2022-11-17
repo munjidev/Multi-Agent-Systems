@@ -40,6 +40,14 @@ public class AgentsData
     public AgentsData() => this.positions = new List<AgentData>();
 }
 
+public class RobotsData : AgentsData
+{
+    public List<Boolean> hasPackage;
+
+    public RobotsData() => this.hasPackage = new List<Boolean>();
+}
+
+
 public class AgentController : MonoBehaviour
 {
     // private string url = "https://agents.us-south.cf.appdomain.cloud/";
@@ -56,7 +64,7 @@ public class AgentController : MonoBehaviour
 
     bool updated = false, started = false;
 
-    public GameObject agentPrefab, obstaclePrefab, packagePrefab, depotPrefab, floor;
+    public GameObject agentPrefab, agent2Prefab, obstaclePrefab, packagePrefab, depotPrefab, floor;
     public int NAgents, NPackages, width, height;
     public float timeToUpdate = 5.0f;
     private int NDepots;
@@ -64,7 +72,7 @@ public class AgentController : MonoBehaviour
 
     void Start()
     {
-        agentsData = new AgentsData();
+        agentsData = new RobotsData();
         depotsData = new AgentsData();
         packagesData = new AgentsData();
         obstacleData = new AgentsData();
@@ -124,7 +132,7 @@ public class AgentController : MonoBehaviour
         {
             // These coroutines will update the data of the agents, depots and packages
             StartCoroutine(GetAgentsData());
-            //StartCoroutine(GetPackagesData());
+            //StartCoroutine(GetPackagesData()); // NOT WORKING !
             //StartCoroutine(GetDepotsData());
         }
     }
@@ -171,23 +179,24 @@ public class AgentController : MonoBehaviour
         {
             agentsData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
 
+            // Update the positions of the agents
             foreach(AgentData agent in agentsData.positions)
             {
                 Vector3 newAgentPosition = new Vector3(agent.x, agent.y, agent.z);
 
-                    if(!started)
-                    {
-                        prevPositions[agent.id] = newAgentPosition;
-                        agents[agent.id] = Instantiate(agentPrefab, newAgentPosition, Quaternion.identity);
-                    }
-                    else
-                    {
-                        Vector3 currentPosition = new Vector3();
-                        if(currPositions.TryGetValue(agent.id, out currentPosition))
-                            prevPositions[agent.id] = currentPosition;
-                        currPositions[agent.id] = newAgentPosition;
-                    }
-            }
+                if(!started)
+                {
+                    prevPositions[agent.id] = newAgentPosition;
+                    agents[agent.id] = Instantiate(agentPrefab, newAgentPosition, Quaternion.identity);
+                }
+                else
+                {
+                    Vector3 currentPosition = new Vector3();
+                    if(currPositions.TryGetValue(agent.id, out currentPosition))
+                        prevPositions[agent.id] = currentPosition;
+                    currPositions[agent.id] = newAgentPosition;
+                }
+            }            
 
             updated = true;
             if(!started) started = true;
@@ -207,6 +216,28 @@ public class AgentController : MonoBehaviour
             //Debug.Log(www.downloadHandler.text);
             Debug.Log(packagesData.positions);
 
+            // foreach(AgentData package in packagesData.positions)
+            // {
+            //     Vector3 newPackagePosition = new Vector3(package.x, package.y, package.z);
+                
+            //     if(!started)
+            //     {
+            //         prevPositions[package.id] = newPackagePosition;
+            //         agents[package.id] = Instantiate(packagePrefab, newPackagePosition, Quaternion.identity);
+            //     }
+            //     else
+            //     {
+            //         Vector3 currentPosition = new Vector3();
+            //         if(currPositions.TryGetValue(package.id, out currentPosition))
+            //             prevPositions[package.id] = currentPosition;
+            //         currPositions[package.id] = newPackagePosition;
+            //     }
+            // }
+
+            // updated = true;
+            // if(!started) started = true;
+
+            // Updatable not working
             foreach(AgentData package in packagesData.positions)
             {
                 Instantiate(packagePrefab, new Vector3(package.x, package.y, package.z), Quaternion.identity);
