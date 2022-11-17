@@ -66,6 +66,7 @@ class RandomAgent(Agent):
             if(len(self.model.grid.get_cell_list_contents(pos)) > 0 ):
                 if (self.model.grid.get_cell_list_contents(pos)[0].typeStr == "PKG"):
                     availableSpaces.append(True)
+                    print(f"Agent {self.unique_id} saw a package at {pos}")
                 else:
                     availableSpaces.append(False)
             elif(self.model.grid.is_cell_empty(pos)):
@@ -87,7 +88,7 @@ class RandomAgent(Agent):
 
         # Pick up package if in same cell
         if(len(self.model.grid.get_cell_list_contents(self.pos)) > 0):
-            print("Larger than 0")
+            print(len(self.model.grid.get_cell_list_contents(self.pos)))
             # for obj in self.model.grid.get_cell_list_contents(self.pos):
             #     print(obj.typeStr)
             #     if(obj.typeStr == "PKG"):
