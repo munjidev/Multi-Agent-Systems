@@ -25,6 +25,8 @@ class RandomAgent(Agent):
         unique_id: Agent's ID 
         direction: Randomly chosen direction chosen from one of four directions (WASD)
     """
+    hasPackage = False
+
     def __init__(self, unique_id, typeStr, model):
         """
         Creates a new random agent.
@@ -37,30 +39,107 @@ class RandomAgent(Agent):
         self.typeStr = typeStr
 
     def move(self):
-        """ 
-        Determines if the agent can move in the direction that was chosen
         """
+        Moves the agent according to its current state.
+        """
+        # Check if robot is carrying a package
+        if(self.hasPackage):
+            self.seekDepot()
+        else:
+            self.seekPackage()
+        
+    def seekPackage(self):
+        """
+        Moves the agent to a package if in neighboring cells.
+        If no package is found, the agent moves randomly.
+        """
+        print(f"Agent {self.unique_id} is seeking package")
+        # Get the neighbors of the agent
         possible_steps = self.model.grid.get_neighborhood(
             self.pos,
             moore=False, # Boolean for whether to use Moore neighborhood (including diagonals) or Von Neumann (only up/down/left/right).
-            include_center=True) 
-        
-        # Checks which grid cells are empty
-        freeSpaces = list(map(self.model.grid.is_cell_empty, possible_steps))
+            include_center=True)
 
-        # If the cell is empty, moves the agent to that cell; otherwise, it stays at the same position
-        if freeSpaces[self.direction]:
-            self.model.grid.move_agent(self, possible_steps[self.direction])
-            print(f"Moving from {self.pos} to {possible_steps[self.direction]}; direction {self.direction}")
-        else:
-            print(f"Can't move from {self.pos} in that direction.")
+        # Check for packages in surrounding 4 cells
+        availableSpaces = []
+        for pos in possible_steps:
+            if(len(self.model.grid.get_cell_list_contents(pos)) > 0 ):
+                if (self.model.grid.get_cell_list_contents(pos)[0].typeStr == "PKG"):
+                    availableSpaces.append(True)
+                else:
+                    availableSpaces.append(False)
+            elif(self.model.grid.is_cell_empty(pos)):
+                availableSpaces.append(True)
+            else:
+                availableSpaces.append(False)
+        next_moves = [p for p,f in zip(possible_steps, availableSpaces) if f == True]
+
+        # Prioritize packages when choosing where to move
+        packages = [p for p in next_moves if (len(self.model.grid.get_cell_list_contents(p))> 0) and (self.model.grid.get_cell_list_contents(p)[0].typeStr == "PKG")]
+
+        if(len(packages) > 0):
+            next_moves = packages
+
+        # If there are no packages in the surrounding cells, move randomly
+        if(len(next_moves) > 0):
+            next_move = self.random.choice(next_moves)
+            self.model.grid.move_agent(self, next_move)
+
+        # Pick up package if in same cell
+        if(len(self.model.grid.get_cell_list_contents(self.pos)) > 0):
+            print("Larger than 0")
+            for obj in self.model.grid.get_cell_list_contents(self.pos):
+                print(obj.typeStr)
+                if(obj.typeStr == "PKG"):
+                    self.hasPackage = True
+                    self.model.grid.remove_agent(obj)
+                    print(f"Agent {self.unique_id} picked up package {obj.unique_id}")
+                    break
+
+    def seekDepot(self):
+        """
+        Check all depot locations and move to the closest one.
+        If there are two depots with the same distance, choose depot
+        with fewer packages.
+        If there are two depots with the same distance and same number
+        of packages, choose randomly.
+        """
+        print(f"Agent {self.unique_id} is seeking depot")
+        # Get depot locations on grid
+        depots = [p for p in self.model.grid.coord_iter() if (len(self.model.grid.get_cell_list_contents(p[1]))> 0) and (self.model.grid.get_cell_list_contents(p[1])[0].typeStr == "DPT")]
+
+        # Check distance relative to each depot
+        distances = []
+        for d in depots:
+            distances.append(math.sqrt((d[1][0] - self.pos[0])**2 + (d[1][1] - self.pos[1])**2))
+        
+        # Get depot with minimum distance
+        minDist = min(distances)
+        minDepots = [d for d in depots if math.sqrt((d[1][0] - self.pos[0])**2 + (d[1][1] - self.pos[1])**2) == minDist]
+
+        # If there are two depots with the same distance, choose depot with fewer packages
+        if(len(minDepots) > 1):
+            minPackages = minDepots[0][0].numPackages
+            minDepots = [d for d in minDepots if d[0].numPackages == minPackages]
+
+        # If there are two depots with the same distance and same number of packages, choose randomly
+        if(len(minDepots) > 1):
+            minDepots = self.random.choice(minDepots)
+
+        # Move to closest depot
+        self.model.grid.move_agent(self, minDepots[1])
+
+        # Drop package if in same cell
+        if(len(self.model.grid.get_cell_list_contents(self.pos)) > 0):
+            if (self.model.grid.get_cell_list_contents(self.pos)[0].typeStr == "DPT"):
+                self.model.grid.get_cell_list_contents(self.pos)[0].drop(self)
+
 
     def step(self):
         """ 
         Determines the new direction it will take, and then moves
         """
-        self.direction = self.random.randint(0,4)
-        print(f"Agent: {self.unique_id} movement {self.direction}")
+        print("Click")
         self.move()
 
 class ObstacleAgent(Agent):
@@ -81,6 +160,23 @@ class PackageAgent(Agent):
     def __init__(self, unique_id, typeStr, model):
         super().__init__(unique_id, model)
         self.typeStr = typeStr
+
+    def pickup(self, agent):
+        """
+        Pick up package by agent.
+        """
+        print(f"Agent {agent.unique_id} picked up package {self.unique_id}")
+        # self.model.grid.remove_agent(self)
+        agent.hasPackage = True
+
+    def drop(self, agent):
+        """
+        Drop package by agent.
+        """
+        print(f"Agent {agent.unique_id} dropped package {self.unique_id}")
+        self.model.grid.place_agent(self, self.pos)
+        agent.hasPackage = False
+        
 
     def step(self):
         pass
