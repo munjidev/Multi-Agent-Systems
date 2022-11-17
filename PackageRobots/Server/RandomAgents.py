@@ -194,9 +194,17 @@ class DepotAgent(Agent):
     def __init__(self, unique_id, typeStr, model):
         super().__init__(unique_id, model)
         self.typeStr = typeStr
+        self.packages = 0
 
     def step(self):
         pass
+
+    def loadPackage(self, package):
+        """
+        Load package into depot.
+        """
+        self.packages += 1
+        print(f"Depot {self.unique_id} was loaded with package {package.unique_id}")
 
 class RandomModel(Model):
     """ 
