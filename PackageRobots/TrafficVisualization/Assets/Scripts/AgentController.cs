@@ -69,7 +69,7 @@ public class AgentController : MonoBehaviour
     string sendConfigEndpoint = "/init";
     string updateEndpoint = "/update";
     RobotsData robotsData;
-    AgentsData depotsData, packagesData, obstacleData;
+    AgentsData agentsData, depotsData, packagesData, obstacleData;
     Dictionary<string, GameObject> agents; 
     Dictionary<string, Vector3> prevPositions, currPositions;
 
@@ -84,6 +84,7 @@ public class AgentController : MonoBehaviour
     void Start()
     {
         robotsData = new RobotsData();
+        agentsData = new AgentsData();
         depotsData = new AgentsData();
         packagesData = new AgentsData();
         obstacleData = new AgentsData();
@@ -177,6 +178,52 @@ public class AgentController : MonoBehaviour
         }
     }
 
+    // IEnumerator GetAgentsData()
+    // {
+    //     UnityWebRequest www = UnityWebRequest.Get(serverUrl + getAgentsEndpoint);
+    //     yield return www.SendWebRequest();
+ 
+    //     if (www.result != UnityWebRequest.Result.Success)
+    //         Debug.Log(www.error);
+    //     else
+    //     {
+    //         robotsData = JsonUtility.FromJson<RobotsData>(www.downloadHandler.text);
+
+    //         // Update the positions of the agents
+    //         foreach(RobotData agent in robotsData.positions)
+    //         {
+    //             Vector3 newAgentPosition = new Vector3(agent.x, agent.y, agent.z);
+
+    //             if(!started)
+    //             {
+    //                 prevPositions[agent.id] = newAgentPosition;
+    //                 agents[agent.id] = Instantiate(agentPrefab, newAgentPosition, Quaternion.identity);
+    //             }
+    //             else
+    //             {
+    //                 Vector3 currentPosition = new Vector3();
+    //                 if(currPositions.TryGetValue(agent.id, out currentPosition))
+    //                     prevPositions[agent.id] = currentPosition;
+    //                 currPositions[agent.id] = newAgentPosition;
+    //             }
+    //         }
+    //         foreach (RobotData agent in robotsData.hasPackage)
+    //         {
+    //             if(agent.hasPackage)
+    //             {
+    //                 agents[agent.id].GetComponent<Renderer>().material.color = Color.red;
+    //             }
+    //             else
+    //             {
+    //                 agents[agent.id].GetComponent<Renderer>().material.color = Color.blue;
+    //             }
+    //         }         
+
+    //         updated = true;
+    //         if(!started) started = true;
+    //     }
+    // }
+
     IEnumerator GetAgentsData()
     {
         UnityWebRequest www = UnityWebRequest.Get(serverUrl + getAgentsEndpoint);
@@ -186,10 +233,10 @@ public class AgentController : MonoBehaviour
             Debug.Log(www.error);
         else
         {
-            robotsData = JsonUtility.FromJson<RobotsData>(www.downloadHandler.text);
+            agentsData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
 
             // Update the positions of the agents
-            foreach(RobotData agent in robotsData.positions)
+            foreach(AgentData agent in agentsData.positions)
             {
                 Vector3 newAgentPosition = new Vector3(agent.x, agent.y, agent.z);
 
@@ -206,17 +253,6 @@ public class AgentController : MonoBehaviour
                     currPositions[agent.id] = newAgentPosition;
                 }
             }
-            foreach (RobotData agent in robotsData.hasPackage)
-            {
-                if(agent.hasPackage)
-                {
-                    agents[agent.id].GetComponent<Renderer>().material.color = Color.red;
-                }
-                else
-                {
-                    agents[agent.id].GetComponent<Renderer>().material.color = Color.blue;
-                }
-            }         
 
             updated = true;
             if(!started) started = true;
