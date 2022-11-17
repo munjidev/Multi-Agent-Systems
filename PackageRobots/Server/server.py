@@ -40,8 +40,8 @@ def initModel():
         height = int(request.form.get('height'))
         currentStep = 0
 
-        print(request.form)
-        print(number_agents, number_packages, number_depots, width, height)
+        # print(request.form)
+        # print(number_agents, number_packages, number_depots, width, height)
         randomModel = RandomModel(number_agents, number_packages, number_depots, width, height)
 
         return jsonify({"message":"Parameters recieved, model initiated."})
@@ -51,7 +51,7 @@ def getAgents():
     global randomModel
 
     if request.method == 'GET':
-        agentPositions = [{"id": str(a.unique_id), "x": x, "y":0.5, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, RandomAgent)]
+        agentPositions = [{"id": str(a.unique_id), "x": x, "y":0, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, RandomAgent)]
 
         return jsonify({'positions':agentPositions})
 
@@ -60,7 +60,7 @@ def getPackages():
     global randomModel
 
     if request.method == 'GET':
-        packagePositions = [{"id": str(a.unique_id), "x": x, "y":1, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, PackageAgent)]
+        packagePositions = [{"id": str(a.unique_id), "x": x, "y":0.3, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, PackageAgent)]
         
         return jsonify({'positions':packagePositions})
 
@@ -70,7 +70,7 @@ def getDepots():
 
     if request.method == 'GET':
         depotPositions = [{"id": str(a.unique_id), "x": x, "y":0.01, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, DepotAgent)]
-        print(depotPositions)
+        
         return jsonify({'positions':depotPositions})
 
 @app.route('/getObstacles', methods=['GET'])
