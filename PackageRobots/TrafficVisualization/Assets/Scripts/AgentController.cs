@@ -59,7 +59,7 @@ public class AgentController : MonoBehaviour
     string sendConfigEndpoint = "/init";
     string updateEndpoint = "/update";
     AgentsData agentsData, depotsData, packagesData, obstacleData;
-    Dictionary<string, GameObject> agents;
+    Dictionary<string, GameObject> agents; 
     Dictionary<string, Vector3> prevPositions, currPositions;
 
     bool updated = false, started = false;
