@@ -28,9 +28,9 @@ class RandomAgent(Agent):
         unique_id: Agent's ID 
         direction: Randomly chosen direction chosen from one of four directions (WASD)
     """
-    hasPackage = False
+    has_package = False
 
-    def __init__(self, unique_id, typeStr, model):
+    def __init__(self, unique_id, type_str, model):
         """
         Creates a new random agent.
         Args:
@@ -39,20 +39,20 @@ class RandomAgent(Agent):
         """
         super().__init__(unique_id, model)
         self.direction = 4
-        self.typeStr = typeStr
+        self.type_str = type_str
 
     def move(self):
         """
         Moves the agent according to its current state.
         """
         # Check if robot is carrying a package
-        print(f"Click, {self.hasPackage}")
-        if(self.hasPackage):
-            self.seekDepot()
+        print(f"Click, {self.has_package}")
+        if(self.has_package):
+            self.seek_depot()
         else:
-            self.seekPackage()
+            self.seek_package()
         
-    def seekPackage(self):
+    def seek_package(self):
         """
         Moves the agent to a package if in neighboring cells.
         If no package is found, the agent moves randomly.
@@ -71,52 +71,52 @@ class RandomAgent(Agent):
             content = self.model.grid.get_cell_list_contents(pos)
             # If there is a package, move to it
             if(len(content) > 0):
-                print(f"Agent {self.unique_id} has found a {content[0].typeStr} at {pos}")
-                if(content[0].typeStr == "PKG"):
+                print(f"Agent {self.unique_id} has found a {content[0].type_str} at {pos}")
+                if(content[0].type_str == "PKG"):
                     print(f"Agent {self.unique_id} has picked up package {content[0].unique_id}")
                     self.model.grid.move_agent(self, pos)
-                    self.hasPackage = True
+                    self.has_package = True
                     return
         
         # # If no package is found, move randomly using the possible steps scope
         self.random_move(possible_steps)
 
-    def seekDepot(self):
+    def seek_depot(self):
         """
         Check all depot locations and approach the closest one.
         """
         print(f"Agent {self.unique_id} is seeking a depot to drop a package")
         # Read the global dictionary with all depot pointers and obtain their positions
-        agentPositon = self.pos
-        closestDepot = None
+        agent_position = self.pos
+        closest_depot = None
         for val in depots.values():
             print(f"Depot {val.unique_id} found, available: {val.available()}")
             if(val.available()):
-                if(closestDepot == None):
-                    closestDepot = val
+                if(closest_depot == None):
+                    closest_depot = val
                 else:
-                    if(self.distance(agentPositon, val.pos) < self.distance(agentPositon, closestDepot.pos)):
-                        closestDepot = val
+                    if(self.distance(agent_position, val.pos) < self.distance(agent_position, closest_depot.pos)):
+                        closest_depot = val
                     # If distance is the same, choose depot with fewer packages
-                    elif(self.distance(agentPositon, val.pos) == self.distance(agentPositon, closestDepot.pos)):
-                        if(val.packages < closestDepot.packages):
-                            closestDepot = val
+                    elif(self.distance(agent_position, val.pos) == self.distance(agent_position, closest_depot.pos)):
+                        if(val.packages < closest_depot.packages):
+                            closest_depot = val
                         # If number of packages is the same, choose randomly
-                        elif(val.packages == closestDepot.packages):
+                        elif(val.packages == closest_depot.packages):
                             if(self.random.random() > 0.5):
-                                closestDepot = val
+                                closest_depot = val
             else:
                 print(f"Depot {val.unique_id} is full")
             
 
         # If the agent is not in the same cell as the depot, approach it by one step
-        if(closestDepot.pos != agentPositon):
-            self.moveTowards(closestDepot.pos)
+        if(closest_depot.pos != agent_position):
+            self.move_towards(closest_depot.pos)
 
         # If the agent is in the same cell as the depot, drop the package
-        if(closestDepot.pos == agentPositon):
-            self.hasPackage = False
-            closestDepot.loadPackage()
+        if(closest_depot.pos == agent_position):
+            self.has_package = False
+            closest_depot.load_package()
             return
         
 
@@ -126,32 +126,32 @@ class RandomAgent(Agent):
         """
         return math.sqrt((pos1[0] - pos2[0])**2 + (pos1[1] - pos2[1])**2)
 
-    def moveTowards(self, targetPosition):
+    def move_towards(self, target_position):
         """
         Moves the agent towards a target position.
         """
-        agentX = self.pos[0]
-        agentY = self.pos[1]
-        depotX = int(targetPosition[0])
-        depotY = int(targetPosition[1])
+        agent_x = self.pos[0]
+        agent_y = self.pos[1]
+        target_x = int(target_position[0])
+        target_y = int(target_position[1])
         possible_steps = []
-        if(agentX < depotX):
-            possible_steps.append((agentX + 1, agentY))
-        elif(agentX > depotX):
-            possible_steps.append((agentX - 1, agentY))
+        if(agent_x < target_x):
+            possible_steps.append((agent_x + 1, agent_y))
+        elif(agent_x > target_x):
+            possible_steps.append((agent_x - 1, agent_y))
 
-        if(agentY < depotY):
-            possible_steps.append((agentX, agentY + 1))
-        elif(agentY > depotY):
-            possible_steps.append((agentX, agentY - 1))
+        if(agent_y < target_y):
+            possible_steps.append((agent_x, agent_y + 1))
+        elif(agent_y > target_y):
+            possible_steps.append((agent_x, agent_y - 1))
 
         content = []
         # Ensure that each step is to an empty cell
         for pos in possible_steps:
             content = self.model.grid.get_cell_list_contents(pos)
             if(len(content) != 0):
-                print(f"{pos} is not empty, and contains a {content[0].typeStr}")
-                if(content[0].typeStr != "DPT"):
+                print(f"{pos} is not empty, and contains a {content[0].type_str}")
+                if(content[0].type_str != "DPT"):
                     possible_steps.remove(pos)
             else:
                 print(f"{pos} is in fact empty")
@@ -165,7 +165,7 @@ class RandomAgent(Agent):
             self.model.grid.move_agent(self, new_position)
             return
         else:
-            print(f"Agent {self.unique_id} is stuck. (There is a {content[0].typeStr} in the way)")
+            print(f"Agent {self.unique_id} is stuck. (There is a {content[0].type_str} in the way)")
             return
 
     def random_move(self, possible_steps):
@@ -179,8 +179,8 @@ class RandomAgent(Agent):
         for pos in possible_steps:
             content = self.model.grid.get_cell_list_contents(pos)
             if(len(content) != 0):
-                print(f"{pos} is not empty, and contains a {content[0].typeStr}")
-                if(content[0].typeStr != "ROB"):
+                print(f"{pos} is not empty, and contains a {content[0].type_str}")
+                if(content[0].type_str != "ROB"):
                     possible_steps.remove(pos)
             else:
                 print(f"{pos} is in fact empty")
@@ -206,9 +206,9 @@ class ObstacleAgent(Agent):
     """
     Obstacle agent. Just to add obstacles to the grid.
     """
-    def __init__(self, unique_id, typeStr, model):
+    def __init__(self, unique_id, type_str, model):
         super().__init__(unique_id, model)
-        self.typeStr = typeStr
+        self.type_str = type_str
 
     def step(self):
         pass   
@@ -217,9 +217,9 @@ class PackageAgent(Agent):
     """
     Package agent. Package can be picked up by agent and placed in a port.
     """
-    def __init__(self, unique_id, typeStr, model):
+    def __init__(self, unique_id, type_str, model):
         super().__init__(unique_id, model)
-        self.typeStr = typeStr     
+        self.type_str = type_str     
 
     def step(self):
         pass
@@ -228,21 +228,21 @@ class DepotAgent(Agent):
     """
     Depot agent. Depot can receive up to X packages, stacked on top of each other.
     """
-    def __init__(self, unique_id, typeStr, model):
+    def __init__(self, unique_id, type_str, model):
         super().__init__(unique_id, model)
-        self.typeStr = typeStr
+        self.type_str = type_str
         self.packages = 0
 
     def available(self):
         return self.packages < 5
 
-    def getPackages(self):
+    def get_packages(self):
         return self.packages
 
     def step(self):
         pass
 
-    def loadPackage(self):
+    def load_package(self):
         """
         Load package into depot.
         """
