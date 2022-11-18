@@ -10,6 +10,11 @@
 # Python flask server to interact with Unity. Based on the code provided by Sergio Ruiz.
 # Octavio Navarro. October 2021
 """
+from RandomAgents import RandomModel, RandomAgent, ObstacleAgent, PackageAgent, DepotAgent
+from mesa.visualization.modules import CanvasGrid, BarChartModule, PieChartModule
+from mesa.visualization.ModularVisualization import ModularServer
+from mesa.visualization.UserParam import UserSettableParameter
+
 import math
 from flask import Flask, request, jsonify
 from RandomAgents import *
@@ -22,75 +27,121 @@ height = 28
 randomModel = None
 currentStep = 0
 
-app = Flask("Traffic example")
+def agent_portrayal(agent):
+    if agent is None: return
+    
+    portrayal = {"Shape": "circle",
+                 "Filled": "true",
+                 "Layer": 1,
+                 "Color": "red",
+                 "r": 0.5}
 
-# @app.route('/', methods=['POST', 'GET'])
+    if (isinstance(agent, ObstacleAgent)):
+        portrayal["Shape"] = "circle"
+        portrayal["Color"] = "gray"
+        portrayal["Layer"] = 1
+        portrayal["r"] = 1
 
-@app.route('/init', methods=['POST', 'GET'])
-def initModel():
-    global currentStep, randomModel, number_agents, number_packages, number_depots, width, height
+    if (isinstance(agent, PackageAgent)):
+        portrayal["Color"] = "brown"
+        portrayal["Layer"] = 0
+        portrayal["r"] = 0.6
 
-    if request.method == 'POST':
+    if (isinstance(agent, DepotAgent)):
+        portrayal["Color"] = "blue"
+        portrayal["Layer"] = 1
+        portrayal["r"] = 0.8
 
-        number_agents = int(request.form.get('NAgents'))
-        number_packages = int(request.form.get('NPackages'))
-        number_depots = int(math.ceil(number_packages/5))
+    return portrayal
 
-        width = int(request.form.get('width'))
-        height = int(request.form.get('height'))
-        currentStep = 0
 
-        # print(request.form)
-        # print(number_agents, number_packages, number_depots, width, height)
-        randomModel = RandomModel(number_agents, number_packages, number_depots, width, height)
+grid = CanvasGrid(agent_portrayal, 5, 5, 500, 500)
 
-        return jsonify({"message":"Parameters recieved, model initiated."})
+server = ModularServer(RandomModel, [grid], "Random Agents",
+{
+    "N": UserSettableParameter('slider', 'Number of agents', 1, 1, 10, 1),
+    "P": UserSettableParameter('slider', 'Number of packages', 1, 1, 10, 1),
+    "D": UserSettableParameter('slider', 'Number of depots', 1, 1, 10, 1),
+    "width": 5, # UserSettableParameter('slider', 'Room Width', 10, 4, 100, 1),
+    "height": 5 # UserSettableParameter('slider', 'Room Height', 10, 4, 100, 1),
+})
 
-@app.route('/getAgents', methods=['GET'])
-def getAgents():
-    global randomModel
+server.port = 8521 # The default
+server.launch()
 
-    if request.method == 'GET':
-        agentPositions = [{"id": str(a.unique_id), "x": x, "y":0, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, RandomAgent)]
-        # read whether agent is carrying a package
-        agentStates = [{"id": str(a.unique_id), "hasPackage": a.hasPackage} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, RandomAgent)]
+# |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| ^ MESA ||||||||| v UNITY |||||||||||||||||||||||||||||||||||||||||||||
 
-        return jsonify({'positions':agentPositions, "states":agentStates})
+# app = Flask("Traffic example")
 
-@app.route('/getPackages', methods=['GET'])
-def getPackages():
-    global randomModel
+# # @app.route('/', methods=['POST', 'GET'])
 
-    if request.method == 'GET':
-        packagePositions = [{"id": str(a.unique_id), "x": x, "y":0.3, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, PackageAgent)]
+# @app.route('/init', methods=['POST', 'GET'])
+# def initModel():
+#     global currentStep, randomModel, number_agents, number_packages, number_depots, width, height
+
+
+
+#     if request.method == 'POST':
+
+#         number_agents = int(request.form.get('NAgents'))
+#         number_packages = int(request.form.get('NPackages'))
+#         number_depots = int(math.ceil(number_packages/5))
+
+#         width = int(request.form.get('width'))
+#         height = int(request.form.get('height'))
+#         currentStep = 0
+
+#         # print(request.form)
+#         # print(number_agents, number_packages, number_depots, width, height)
+#         randomModel = RandomModel(number_agents, number_packages, number_depots, width, height)
+
+#         return jsonify({"message":"Parameters recieved, model initiated."})
+
+# @app.route('/getAgents', methods=['GET'])
+# def getAgents():
+#     global randomModel
+
+#     if request.method == 'GET':
+#         agentPositions = [{"id": str(a.unique_id), "x": x, "y":0, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, RandomAgent)]
+#         # read whether agent is carrying a package
+#         agentStates = [{"id": str(a.unique_id), "hasPackage": a.hasPackage} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, RandomAgent)]
+
+#         return jsonify({'positions':agentPositions, "states":agentStates})
+
+# @app.route('/getPackages', methods=['GET'])
+# def getPackages():
+#     global randomModel
+
+#     if request.method == 'GET':
+#         packagePositions = [{"id": str(a.unique_id), "x": x, "y":0.3, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, PackageAgent)]
         
-        return jsonify({'positions':packagePositions})
+#         return jsonify({'positions':packagePositions})
 
-@app.route('/getDepots', methods=['GET'])
-def getDepots():
-    global randomModel
+# @app.route('/getDepots', methods=['GET'])
+# def getDepots():
+#     global randomModel
 
-    if request.method == 'GET':
-        depotPositions = [{"id": str(a.unique_id), "x": x, "y":0.01, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, DepotAgent)]
+#     if request.method == 'GET':
+#         depotPositions = [{"id": str(a.unique_id), "x": x, "y":0.01, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, DepotAgent)]
         
-        return jsonify({'positions':depotPositions})
+#         return jsonify({'positions':depotPositions})
 
-@app.route('/getObstacles', methods=['GET'])
-def getObstacles():
-    global randomModel
+# @app.route('/getObstacles', methods=['GET'])
+# def getObstacles():
+#     global randomModel
 
-    if request.method == 'GET':
-        carPositions = [{"id": str(a.unique_id), "x": x, "y":0.5, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, ObstacleAgent)]
+#     if request.method == 'GET':
+#         carPositions = [{"id": str(a.unique_id), "x": x, "y":0.5, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, ObstacleAgent)]
 
-        return jsonify({'positions':carPositions})
+#         return jsonify({'positions':carPositions})
 
-@app.route('/update', methods=['GET'])
-def updateModel():
-    global currentStep, randomModel
-    if request.method == 'GET':
-        randomModel.step()
-        currentStep += 1
-        return jsonify({'message':f'Model updated to step {currentStep}.', 'currentStep':currentStep})
+# @app.route('/update', methods=['GET'])
+# def updateModel():
+#     global currentStep, randomModel
+#     if request.method == 'GET':
+#         randomModel.step()
+#         currentStep += 1
+#         return jsonify({'message':f'Model updated to step {currentStep}.', 'currentStep':currentStep})
 
-if __name__=='__main__':
-    app.run(host="localhost", port=8585, debug=True)
+# if __name__=='__main__':
+#     app.run(host="localhost", port=8585, debug=True)

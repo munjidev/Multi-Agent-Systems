@@ -18,8 +18,8 @@ from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.space import Grid
 
-# Global dictionary with all existing depot locations
 depots = {}
+# Global dictionary with all existing depot locations
 
 class RandomAgent(Agent):
     """
@@ -57,7 +57,7 @@ class RandomAgent(Agent):
         Moves the agent to a package if in neighboring cells.
         If no package is found, the agent moves randomly.
         """
-        print(f"Agent {self.unique_id} is seeking a package")
+        print(f"Agent {self.unique_id} is seeking a package at {self.pos}")
         # print(f"Agent {self.unique_id} is seeking package")
         # Get the neighbors of the agent
         possible_steps = self.model.grid.get_neighborhood(
@@ -65,14 +65,18 @@ class RandomAgent(Agent):
             moore=False, # Boolean for whether to use Moore neighborhood (including diagonals) or Von Neumann (only up/down/left/right).
             include_center=True)
 
+        content = []
         # Check if there is a package in the neighbors
         for pos in possible_steps:
+            content = self.model.grid.get_cell_list_contents(pos)
             # If there is a package, move to it
-            if(len(self.model.grid.get_cell_list_contents(pos)) > 0):
-                if(self.model.grid.get_cell_list_contents(pos)[0].typeStr == "PKG"):
+            if(len(content) > 0):
+                print(f"Agent {self.unique_id} has found a {content[0].typeStr} at {pos}")
+                if(content[0].typeStr == "PKG"):
+                    print(f"Agent {self.unique_id} has picked up package {content[0].unique_id}")
                     self.model.grid.move_agent(self, pos)
                     self.hasPackage = True
-                    return 
+                    return
         
         # # If no package is found, move randomly
         self.random_move()
@@ -86,9 +90,7 @@ class RandomAgent(Agent):
         agentPositon = self.pos
         closestDepot = None
         for val in depots.values():
-            print(f"Depot: {val}")
-            # Check if the depot is available
-            print(f"Available: {val.available()}")
+            print(f"Depot {val.unique_id} found, available: {val.available()}")
             if(val.available()):
                 if(closestDepot == None):
                     closestDepot = val
@@ -106,15 +108,17 @@ class RandomAgent(Agent):
             else:
                 print(f"Depot {val.unique_id} is full")
             
-                
-        # # If the agent is in the same cell as the depot, drop the package
+
+        # If the agent is not in the same cell as the depot, approach it by one step
+        if(closestDepot.pos != agentPositon):
+            self.moveTowards(closestDepot.pos)
+
+        # If the agent is in the same cell as the depot, drop the package
         if(closestDepot.pos == agentPositon):
             self.hasPackage = False
             closestDepot.loadPackage()
             return
         
-        # Move to the closest depot by one step
-        self.moveTowards(closestDepot.pos)
 
     def distance(self, pos1, pos2):
         """
@@ -126,13 +130,10 @@ class RandomAgent(Agent):
         """
         Moves the agent towards a target position.
         """
-        print(f"Agent {self.unique_id} is moving to {targetPosition}")
         agentX = self.pos[0]
         agentY = self.pos[1]
-        print(f"Rob: {self.pos}")
         depotX = int(targetPosition[0])
         depotY = int(targetPosition[1])
-        print(f"Dep: {targetPosition}")
         possible_steps = []
         if(agentX < depotX):
             possible_steps.append((agentX + 1, agentY))
@@ -144,12 +145,28 @@ class RandomAgent(Agent):
         elif(agentY > depotY):
             possible_steps.append((agentX, agentY - 1))
 
+        content = []
+        # Ensure that each step is to an empty cell
+        for pos in possible_steps:
+            content = self.model.grid.get_cell_list_contents(pos)
+            if(len(content) != 0):
+                print(f"{pos} is not empty, and contains a {content[0].typeStr}")
+                if(content[0].typeStr != "DPT"):
+                    possible_steps.remove(pos)
+            else:
+                print(f"{pos} is in fact empty")
+
         if len(possible_steps) > 0:
             # Choose a random direction
             new_position = self.random.choice(possible_steps)
 
             # Move the agent
+            print(f"Agent {self.unique_id} moved to {new_position}")
             self.model.grid.move_agent(self, new_position)
+            return
+        else:
+            print(f"Agent {self.unique_id} is stuck. (There is a {content[0].typeStr} in the way)")
+            return
 
     def random_move(self):
         """
@@ -162,14 +179,21 @@ class RandomAgent(Agent):
             moore=False, # Boolean for whether to use Moore neighborhood (including diagonals) or Von Neumann (only up/down/left/right).
             include_center=True)
 
-        # Avoid cell if it has a ROB agent or an obstacle
+        content = []
+        # Navigate to empty cells only
         for pos in possible_steps:
-            if(len(self.model.grid.get_cell_list_contents(pos)) > 0):
-                if(self.model.grid.get_cell_list_contents(pos)[0].typeStr == "ROB" or self.model.grid.get_cell_list_contents(pos)[0].typeStr == "OBS"):
-                    possible_steps.remove(pos)
+            content = self.model.grid.get_cell_list_contents(pos)
+            if(len(content) > 0)or(content.typeStr == "OBS"):
+                print(f"{pos} is not empty, and contains a {content[0].typeStr}")
+                possible_steps.remove(pos)
 
-        # Choose a random direction
-        new_position = self.random.choice(possible_steps)
+        # Ensure that the agent can move
+        if len(possible_steps) > 0:
+            # Choose a random direction
+            new_position = self.random.choice(possible_steps)
+        else:
+            new_position = self.pos
+            print(f"Agent {self.unique_id} is stuck! :(")
 
         # Move the agent
         self.model.grid.move_agent(self, new_position)
@@ -281,7 +305,7 @@ class RandomModel(Model):
             c = DepotAgent(i+3000, "DPT", self)
             self.schedule.add(c)
 
-            pos_gen = lambda w, h: (self.random.randrange(w), self.random.randrange(h))
+            pos_gen = lambda w, h: (self.random.randrange(w), 1)
             pos = pos_gen(self.grid.width, self.grid.height)
             while (not self.grid.is_cell_empty(pos)):
                 pos = pos_gen(self.grid.width, self.grid.height)
