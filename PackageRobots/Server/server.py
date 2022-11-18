@@ -52,8 +52,10 @@ def getAgents():
 
     if request.method == 'GET':
         agentPositions = [{"id": str(a.unique_id), "x": x, "y":0, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, RandomAgent)]
+        # read whether agent is carrying a package
+        agentStates = [{"id": str(a.unique_id), "hasPackage": a.hasPackage} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, RandomAgent)]
 
-        return jsonify({'positions':agentPositions})
+        return jsonify({'positions':agentPositions, "states":agentStates})
 
 @app.route('/getPackages', methods=['GET'])
 def getPackages():

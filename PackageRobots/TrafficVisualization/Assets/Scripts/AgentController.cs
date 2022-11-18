@@ -30,6 +30,15 @@ public class AgentData
         this.z = z;
     }
 }
+public class RobotData : AgentData
+{
+    public bool hasPackage;
+
+    public RobotData(string id, float x, float y, float z, bool hasPackage) : base(id, x, y, z)
+    {
+        this.hasPackage = hasPackage;
+    }
+}
 
 [Serializable]
 
@@ -42,9 +51,10 @@ public class AgentsData
 
 public class RobotsData : AgentsData
 {
-    public List<Boolean> hasPackage;
+    public List<RobotData> hasPackage;
 
-    public RobotsData() => this.hasPackage = new List<Boolean>();
+    public RobotsData() => this.hasPackage = new List<RobotData>();
+    // this.hasPackage = new List<Boolean>();
 }
 
 
@@ -58,13 +68,14 @@ public class AgentController : MonoBehaviour
     string getObstaclesEndpoint = "/getObstacles";
     string sendConfigEndpoint = "/init";
     string updateEndpoint = "/update";
+    RobotsData robotsData;
     AgentsData agentsData, depotsData, packagesData, obstacleData;
-    Dictionary<string, GameObject> agents;
+    Dictionary<string, GameObject> agents; 
     Dictionary<string, Vector3> prevPositions, currPositions;
 
     bool updated = false, started = false;
 
-    public GameObject agentPrefab, agent2Prefab, obstaclePrefab, packagePrefab, depotPrefab, floor;
+    public GameObject agentPrefab, obstaclePrefab, packagePrefab, depotPrefab, floor;
     public int NAgents, NPackages, width, height;
     public float timeToUpdate = 5.0f;
     private int NDepots;
@@ -72,7 +83,8 @@ public class AgentController : MonoBehaviour
 
     void Start()
     {
-        agentsData = new RobotsData();
+        robotsData = new RobotsData();
+        agentsData = new AgentsData();
         depotsData = new AgentsData();
         packagesData = new AgentsData();
         obstacleData = new AgentsData();
@@ -166,6 +178,52 @@ public class AgentController : MonoBehaviour
         }
     }
 
+    // IEnumerator GetAgentsData()
+    // {
+    //     UnityWebRequest www = UnityWebRequest.Get(serverUrl + getAgentsEndpoint);
+    //     yield return www.SendWebRequest();
+ 
+    //     if (www.result != UnityWebRequest.Result.Success)
+    //         Debug.Log(www.error);
+    //     else
+    //     {
+    //         robotsData = JsonUtility.FromJson<RobotsData>(www.downloadHandler.text);
+
+    //         // Update the positions of the agents
+    //         foreach(RobotData agent in robotsData.positions)
+    //         {
+    //             Vector3 newAgentPosition = new Vector3(agent.x, agent.y, agent.z);
+
+    //             if(!started)
+    //             {
+    //                 prevPositions[agent.id] = newAgentPosition;
+    //                 agents[agent.id] = Instantiate(agentPrefab, newAgentPosition, Quaternion.identity);
+    //             }
+    //             else
+    //             {
+    //                 Vector3 currentPosition = new Vector3();
+    //                 if(currPositions.TryGetValue(agent.id, out currentPosition))
+    //                     prevPositions[agent.id] = currentPosition;
+    //                 currPositions[agent.id] = newAgentPosition;
+    //             }
+    //         }
+    //         foreach (RobotData agent in robotsData.hasPackage)
+    //         {
+    //             if(agent.hasPackage)
+    //             {
+    //                 agents[agent.id].GetComponent<Renderer>().material.color = Color.red;
+    //             }
+    //             else
+    //             {
+    //                 agents[agent.id].GetComponent<Renderer>().material.color = Color.blue;
+    //             }
+    //         }         
+
+    //         updated = true;
+    //         if(!started) started = true;
+    //     }
+    // }
+
     IEnumerator GetAgentsData()
     {
         UnityWebRequest www = UnityWebRequest.Get(serverUrl + getAgentsEndpoint);
@@ -194,7 +252,7 @@ public class AgentController : MonoBehaviour
                         prevPositions[agent.id] = currentPosition;
                     currPositions[agent.id] = newAgentPosition;
                 }
-            }            
+            }
 
             updated = true;
             if(!started) started = true;
