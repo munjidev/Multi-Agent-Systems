@@ -78,8 +78,8 @@ class RandomAgent(Agent):
                     self.hasPackage = True
                     return
         
-        # # If no package is found, move randomly
-        self.random_move()
+        # # If no package is found, move randomly using the possible steps scope
+        self.random_move(possible_steps)
 
     def seekDepot(self):
         """
@@ -168,24 +168,22 @@ class RandomAgent(Agent):
             print(f"Agent {self.unique_id} is stuck. (There is a {content[0].typeStr} in the way)")
             return
 
-    def random_move(self):
+    def random_move(self, possible_steps):
         """
         Move the agent to a random position.
         """
         print("(While moving randomly...)")
         # Get the neighbors of the agent
-        possible_steps = self.model.grid.get_neighborhood(
-            self.pos,
-            moore=False, # Boolean for whether to use Moore neighborhood (including diagonals) or Von Neumann (only up/down/left/right).
-            include_center=True)
-
         content = []
         # Navigate to empty cells only
         for pos in possible_steps:
             content = self.model.grid.get_cell_list_contents(pos)
-            if(len(content) > 0)or(content.typeStr == "OBS"):
+            if(len(content) != 0):
                 print(f"{pos} is not empty, and contains a {content[0].typeStr}")
-                possible_steps.remove(pos)
+                if(content[0].typeStr != "ROB"):
+                    possible_steps.remove(pos)
+            else:
+                print(f"{pos} is in fact empty")
 
         # Ensure that the agent can move
         if len(possible_steps) > 0:
