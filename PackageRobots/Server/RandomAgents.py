@@ -71,7 +71,7 @@ class RandomAgent(Agent):
             content = self.model.grid.get_cell_list_contents(pos)
             # If there is a package, move to it
             if(len(content) > 0):
-                print(f"Agent {self.unique_id} has found a {content[0].type_str} at {pos}")
+                # print(f"Agent {self.unique_id} has found a {content[0].type_str} at {pos}")
                 if(content[0].type_str == "PKG"):
                     print(f"Agent {self.unique_id} has picked up package {content[0].unique_id}")
                     self.model.grid.move_agent(self, pos)
@@ -150,11 +150,9 @@ class RandomAgent(Agent):
         for pos in possible_steps:
             content = self.model.grid.get_cell_list_contents(pos)
             if(len(content) != 0):
-                print(f"{pos} is not empty, and contains a {content[0].type_str}")
+                # print(f"{pos} is not empty, and contains a {content[0].type_str}")
                 if(content[0].type_str != "DPT"):
                     possible_steps.remove(pos)
-            else:
-                print(f"{pos} is in fact empty")
 
         if len(possible_steps) > 0:
             # Choose a random direction
@@ -177,13 +175,13 @@ class RandomAgent(Agent):
         content = []
         possible_steps = []
         # Navigate to empty cells only
-        print(f"Neighbors: {neighbors}")
+        # print(f"Neighbors: {neighbors}")
         for pos in neighbors:
             content = self.model.grid.get_cell_list_contents(pos)
-            print(len(content))
-            if(len(content) != 0):
-                print(f"{pos} is not empty, and contains a {content[0].type_str}")
-            else:
+            # print(len(content))
+            # if(len(content) != 0):
+            #     print(f"{pos} is not empty, and contains a {content[0].type_str}")
+            if(len(content) == 0):
                 print(f"{pos} is in fact empty")
                 possible_steps.append(pos)
         print(f"Possible steps: {possible_steps}")
@@ -316,8 +314,8 @@ class RandomModel(Model):
 
     def step(self):
         '''Advance the model by one step.'''
-        # Check if all boxes are in a depot and stop the simulation if so
-        if all([depots[i].get_packages() == 5 for i in depots]):
+        # Check if total packages matches depot total packages
+        if self.num_packages == sum([depots[i].get_packages() for i in depots]):
+            print("All packages have been delivered!")
             self.running = False
-            print("All boxes are in a depot, simulation is over!")
         self.schedule.step()
