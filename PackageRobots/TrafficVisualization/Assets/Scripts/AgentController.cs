@@ -30,6 +30,30 @@ public class AgentData
         this.z = z;
     }
 }
+// public class DepotData : AgentData
+// {
+//     public int package_num;
+
+//     public DepotData(string id, int package_num, float x, float y, float z) : base(id, x, y, z)
+//     {
+//         this.package_num = package_num;
+//     }
+// }
+public class DepotData
+{
+    public string id;
+    public int package_num;
+    public float x, y, z;
+
+    public DepotData(string id, int package_num, float x, float y, float z)
+    {
+        this.id = id;
+        this.package_num = package_num;
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+}
 public class RobotData : AgentData
 {
     public bool hasPackage;
@@ -47,6 +71,13 @@ public class AgentsData
     public List<AgentData> positions;
 
     public AgentsData() => this.positions = new List<AgentData>();
+}
+
+public class DepotsData
+{
+    public List<DepotData> data;
+
+    public DepotsData() => this.data = new List<DepotData>();
 }
 
 public class RobotsData : AgentsData
@@ -69,11 +100,12 @@ public class AgentController : MonoBehaviour
     string sendConfigEndpoint = "/init";
     string updateEndpoint = "/update";
     RobotsData robotsData;
-    AgentsData agentsData, depotsData, packagesData, obstacleData;
-    Dictionary<string, GameObject> agents; 
+    AgentsData agentsData, packagesData, obstacleData;
+    DepotsData depotsData;
+    Dictionary<string, GameObject> agents, depots;
     Dictionary<string, Vector3> prevPositions, currPositions;
 
-    bool updated = false, started = false;
+    bool updated = false, agentsStarted = false, depotsStarted = false;
 
     public GameObject agentPrefab, obstaclePrefab, packagePrefab, depotPrefab, floor;
     public int NAgents, NPackages, width, height;
@@ -85,7 +117,7 @@ public class AgentController : MonoBehaviour
     {
         robotsData = new RobotsData();
         agentsData = new AgentsData();
-        depotsData = new AgentsData();
+        depotsData = new DepotsData();
         packagesData = new AgentsData();
         obstacleData = new AgentsData();
 
@@ -93,6 +125,7 @@ public class AgentController : MonoBehaviour
         currPositions = new Dictionary<string, Vector3>();
 
         agents = new Dictionary<string, GameObject>();
+        depots = new Dictionary<string, GameObject>();
 
         floor.transform.localScale = new Vector3((float)width/10, 1, (float)height/10);
         floor.transform.localPosition = new Vector3((float)width/2-0.5f, 0, (float)height/2-0.5f);
@@ -128,6 +161,12 @@ public class AgentController : MonoBehaviour
                 if(direction != Vector3.zero) agents[agent.Key].transform.rotation = Quaternion.LookRotation(direction);
             }
 
+            foreach (var depot in depots)
+            {
+                //Change visible children for the given depot depending on the number of packages
+
+            }
+
             // float t = (timer / timeToUpdate);
             // dt = t * t * ( 3f - 2f*t);
         }
@@ -144,6 +183,7 @@ public class AgentController : MonoBehaviour
         {
             // These coroutines will update the data of the agents, depots and packages
             StartCoroutine(GetAgentsData());
+            StartCoroutine(GetDepotsData());
         }
     }
 
@@ -178,52 +218,6 @@ public class AgentController : MonoBehaviour
         }
     }
 
-    // IEnumerator GetAgentsData()
-    // {
-    //     UnityWebRequest www = UnityWebRequest.Get(serverUrl + getAgentsEndpoint);
-    //     yield return www.SendWebRequest();
- 
-    //     if (www.result != UnityWebRequest.Result.Success)
-    //         Debug.Log(www.error);
-    //     else
-    //     {
-    //         robotsData = JsonUtility.FromJson<RobotsData>(www.downloadHandler.text);
-
-    //         // Update the positions of the agents
-    //         foreach(RobotData agent in robotsData.positions)
-    //         {
-    //             Vector3 newAgentPosition = new Vector3(agent.x, agent.y, agent.z);
-
-    //             if(!started)
-    //             {
-    //                 prevPositions[agent.id] = newAgentPosition;
-    //                 agents[agent.id] = Instantiate(agentPrefab, newAgentPosition, Quaternion.identity);
-    //             }
-    //             else
-    //             {
-    //                 Vector3 currentPosition = new Vector3();
-    //                 if(currPositions.TryGetValue(agent.id, out currentPosition))
-    //                     prevPositions[agent.id] = currentPosition;
-    //                 currPositions[agent.id] = newAgentPosition;
-    //             }
-    //         }
-    //         foreach (RobotData agent in robotsData.hasPackage)
-    //         {
-    //             if(agent.hasPackage)
-    //             {
-    //                 agents[agent.id].GetComponent<Renderer>().material.color = Color.red;
-    //             }
-    //             else
-    //             {
-    //                 agents[agent.id].GetComponent<Renderer>().material.color = Color.blue;
-    //             }
-    //         }         
-
-    //         updated = true;
-    //         if(!started) started = true;
-    //     }
-    // }
-
     IEnumerator GetAgentsData()
     {
         UnityWebRequest www = UnityWebRequest.Get(serverUrl + getAgentsEndpoint);
@@ -240,7 +234,7 @@ public class AgentController : MonoBehaviour
             {
                 Vector3 newAgentPosition = new Vector3(agent.x, agent.y, agent.z);
 
-                if(!started)
+                if(!agentsStarted)
                 {
                     prevPositions[agent.id] = newAgentPosition;
                     agents[agent.id] = Instantiate(agentPrefab, newAgentPosition, Quaternion.identity);
@@ -255,7 +249,7 @@ public class AgentController : MonoBehaviour
             }
 
             updated = true;
-            if(!started) started = true;
+            if(!agentsStarted) agentsStarted = true;
         }
     }
 
@@ -281,21 +275,89 @@ public class AgentController : MonoBehaviour
 
     IEnumerator GetDepotsData()
     {
+        Debug.Log("Getting Depots data");
         UnityWebRequest www = UnityWebRequest.Get(serverUrl + getDepotsEndpoint);
         yield return www.SendWebRequest();
  
         if (www.result != UnityWebRequest.Result.Success)
             Debug.Log(www.error);
-        else 
+        else
         {
-            depotsData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
-            //Debug.Log(www.downloadHandler.text);
-            Debug.Log(depotsData.positions);
-
-            foreach(AgentData depot in depotsData.positions)
+            try
             {
-                Instantiate(depotPrefab, new Vector3(depot.x, depot.y, depot.z), Quaternion.identity);
+                depotsData = JsonUtility.FromJson<DepotsData>(www.downloadHandler.text);
             }
+            catch (Exception e)
+            {
+                Debug.Log("|||||||"+e);
+            }
+            Debug.Log(www.downloadHandler.text);
+            Debug.Log(depotsData.data[0]);
+
+            foreach(DepotData depot in depotsData.data)
+            {
+                if(!depotsStarted)
+                {
+                    Debug.Log("Creating depot");
+                    depots[depot.id] = Instantiate(depotPrefab, new Vector3(depot.x, depot.y, depot.z), Quaternion.identity);
+                }
+                else
+                {
+                    Debug.Log("Package number: "+ depot.package_num);
+                    if (depot.package_num==0)
+                    {
+                        depots[depot.id].transform.GetChild(0).gameObject.SetActive(false);
+                        depots[depot.id].transform.GetChild(1).gameObject.SetActive(false);
+                        depots[depot.id].transform.GetChild(2).gameObject.SetActive(false);
+                        depots[depot.id].transform.GetChild(3).gameObject.SetActive(false);
+                        depots[depot.id].transform.GetChild(4).gameObject.SetActive(false);
+
+                    }
+                    else if (depot.package_num==1)
+                    {
+                        depots[depot.id].transform.GetChild(0).gameObject.SetActive(true);
+                        depots[depot.id].transform.GetChild(1).gameObject.SetActive(false);
+                        depots[depot.id].transform.GetChild(2).gameObject.SetActive(false);
+                        depots[depot.id].transform.GetChild(3).gameObject.SetActive(false);
+                        depots[depot.id].transform.GetChild(4).gameObject.SetActive(false);
+                    }
+                    else if (depot.package_num==2)
+                    {
+                        depots[depot.id].transform.GetChild(0).gameObject.SetActive(true);
+                        depots[depot.id].transform.GetChild(1).gameObject.SetActive(true);
+                        depots[depot.id].transform.GetChild(2).gameObject.SetActive(false);
+                        depots[depot.id].transform.GetChild(3).gameObject.SetActive(false);
+                        depots[depot.id].transform.GetChild(4).gameObject.SetActive(false);
+                    }
+                    else if (depot.package_num==3)
+                    {
+                        depots[depot.id].transform.GetChild(0).gameObject.SetActive(true);
+                        depots[depot.id].transform.GetChild(1).gameObject.SetActive(true);
+                        depots[depot.id].transform.GetChild(2).gameObject.SetActive(true);
+                        depots[depot.id].transform.GetChild(3).gameObject.SetActive(false);
+                        depots[depot.id].transform.GetChild(4).gameObject.SetActive(false);
+                    }
+                    else if (depot.package_num==4)
+                    {
+                        depots[depot.id].transform.GetChild(0).gameObject.SetActive(true);
+                        depots[depot.id].transform.GetChild(1).gameObject.SetActive(true);
+                        depots[depot.id].transform.GetChild(2).gameObject.SetActive(true);
+                        depots[depot.id].transform.GetChild(3).gameObject.SetActive(true);
+                        depots[depot.id].transform.GetChild(4).gameObject.SetActive(false);
+                    }
+                    else if (depot.package_num==5)
+                    {
+                        depots[depot.id].transform.GetChild(0).gameObject.SetActive(true);
+                        depots[depot.id].transform.GetChild(1).gameObject.SetActive(true);
+                        depots[depot.id].transform.GetChild(2).gameObject.SetActive(true);
+                        depots[depot.id].transform.GetChild(3).gameObject.SetActive(true);
+                        depots[depot.id].transform.GetChild(4).gameObject.SetActive(true);
+                    }
+                }
+            }
+
+            updated = true;
+            if(!depotsStarted) depotsStarted = true;
         }
     }
 

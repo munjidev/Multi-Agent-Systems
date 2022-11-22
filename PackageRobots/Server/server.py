@@ -125,9 +125,9 @@ def getDepots():
     global randomModel
 
     if request.method == 'GET':
-        depotPositions = [{"id": str(a.unique_id), "x": x, "y":0.01, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, DepotAgent)]
+        depotData = [{"id": str(a.unique_id), "package_num": str(a.get_packages()), "x": x, "y":0.01, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, DepotAgent)]
         
-        return jsonify({'positions':depotPositions})
+        return jsonify({'data':depotData})
 
 @app.route('/getObstacles', methods=['GET'])
 def getObstacles():

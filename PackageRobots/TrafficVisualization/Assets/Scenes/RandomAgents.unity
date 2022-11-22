@@ -333,12 +333,12 @@ MonoBehaviour:
   agentPrefab: {fileID: 993549348249905, guid: 612a3d44f0b92a243a2d1432788a9ff4, type: 3}
   obstaclePrefab: {fileID: 961990229689801968, guid: 0870e23a47df89e468e8af19c065fce0, type: 3}
   packagePrefab: {fileID: 993549348249905, guid: 24ebfc4c79c15e14db54035e301a7f16, type: 3}
-  depotPrefab: {fileID: 3240343348373693069, guid: 6545d3fdd691f964abdf9ff56bdb79a8, type: 3}
+  depotPrefab: {fileID: 3240343348373693069, guid: 6fd831cad5ebff34eb9c8ac9afcd5698, type: 3}
   floor: {fileID: 1555382164}
   NAgents: 3
-  NPackages: 5
-  width: 10
-  height: 10
+  NPackages: 10
+  width: 20
+  height: 20
   timeToUpdate: 2
 --- !u!4 &1518653506
 Transform:
