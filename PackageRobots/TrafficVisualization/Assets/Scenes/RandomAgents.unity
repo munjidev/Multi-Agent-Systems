@@ -330,15 +330,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 983bc179e80f15347a79dd7b044746e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  agentPrefab: {fileID: 993549348249905, guid: 563375cb179ab4d4d8c0ce2bfc651964, type: 3}
+  agentPrefab: {fileID: 993549348249905, guid: 612a3d44f0b92a243a2d1432788a9ff4, type: 3}
   obstaclePrefab: {fileID: 961990229689801968, guid: 0870e23a47df89e468e8af19c065fce0, type: 3}
   packagePrefab: {fileID: 993549348249905, guid: 24ebfc4c79c15e14db54035e301a7f16, type: 3}
-  depotPrefab: {fileID: 3240343348373693069, guid: 5b4568120a88d0e46bf2996d40a671e2, type: 3}
+  depotPrefab: {fileID: 3240343348373693069, guid: 6545d3fdd691f964abdf9ff56bdb79a8, type: 3}
   floor: {fileID: 1555382164}
-  NAgents: 1
-  NPackages: 5
-  width: 5
-  height: 5
+  NAgents: 100
+  NPackages: 300
+  width: 300
+  height: 300
   timeToUpdate: 2
 --- !u!4 &1518653506
 Transform:
