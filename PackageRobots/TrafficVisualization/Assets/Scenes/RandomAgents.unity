@@ -335,10 +335,10 @@ MonoBehaviour:
   packagePrefab: {fileID: 993549348249905, guid: 24ebfc4c79c15e14db54035e301a7f16, type: 3}
   depotPrefab: {fileID: 3240343348373693069, guid: 6545d3fdd691f964abdf9ff56bdb79a8, type: 3}
   floor: {fileID: 1555382164}
-  NAgents: 2
-  NPackages: 5
-  width: 5
-  height: 5
+  NAgents: 100
+  NPackages: 300
+  width: 300
+  height: 500
   timeToUpdate: 2
 --- !u!4 &1518653506
 Transform:

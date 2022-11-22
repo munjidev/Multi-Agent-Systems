@@ -175,20 +175,23 @@ class RandomAgent(Agent):
         print("(While moving randomly...)")
         # Get the neighbors of the agent
         content = []
+        filtered_steps = []
         # Navigate to empty cells only
+        print(f"Possible steps: {possible_steps}")
         for pos in possible_steps:
             content = self.model.grid.get_cell_list_contents(pos)
+            print(len(content))
             if(len(content) != 0):
                 print(f"{pos} is not empty, and contains a {content[0].type_str}")
-                if(content[0].type_str != "ROB"):
-                    possible_steps.remove(pos)
             else:
                 print(f"{pos} is in fact empty")
+                filtered_steps.append(pos)
+        print(f"Filtered steps: {filtered_steps}")
 
         # Ensure that the agent can move
-        if len(possible_steps) > 0:
+        if len(filtered_steps) > 0:
             # Choose a random direction
-            new_position = self.random.choice(possible_steps)
+            new_position = self.random.choice(filtered_steps)
         else:
             new_position = self.pos
             print(f"Agent {self.unique_id} is stuck! :(")
