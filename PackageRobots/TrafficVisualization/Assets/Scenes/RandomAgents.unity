@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657826, g: 0.49641263, b: 0.57481676, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -335,10 +335,10 @@ MonoBehaviour:
   packagePrefab: {fileID: 993549348249905, guid: 24ebfc4c79c15e14db54035e301a7f16, type: 3}
   depotPrefab: {fileID: 3240343348373693069, guid: 6545d3fdd691f964abdf9ff56bdb79a8, type: 3}
   floor: {fileID: 1555382164}
-  NAgents: 100
-  NPackages: 300
-  width: 300
-  height: 300
+  NAgents: 3
+  NPackages: 5
+  width: 10
+  height: 10
   timeToUpdate: 2
 --- !u!4 &1518653506
 Transform:
