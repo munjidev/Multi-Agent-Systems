@@ -60,14 +60,14 @@ class RandomAgent(Agent):
         print(f"Agent {self.unique_id} is seeking a package at {self.pos}")
         # print(f"Agent {self.unique_id} is seeking package")
         # Get the neighbors of the agent
-        possible_steps = self.model.grid.get_neighborhood(
+        neighbors = self.model.grid.get_neighborhood(
             self.pos,
             moore=False, # Boolean for whether to use Moore neighborhood (including diagonals) or Von Neumann (only up/down/left/right).
             include_center=True)
 
         content = []
         # Check if there is a package in the neighbors
-        for pos in possible_steps:
+        for pos in neighbors:
             content = self.model.grid.get_cell_list_contents(pos)
             # If there is a package, move to it
             if(len(content) > 0):
@@ -79,7 +79,7 @@ class RandomAgent(Agent):
                     return
         
         # # If no package is found, move randomly using the possible steps scope
-        self.random_move(possible_steps)
+        self.random_move(neighbors)
 
     def seek_depot(self):
         """
@@ -168,30 +168,30 @@ class RandomAgent(Agent):
             print(f"Agent {self.unique_id} is stuck. (There is a {content[0].type_str} in the way)")
             return
 
-    def random_move(self, possible_steps):
+    def random_move(self, neighbors):
         """
         Move the agent to a random position.
         """
         print("(While moving randomly...)")
         # Get the neighbors of the agent
         content = []
-        filtered_steps = []
+        possible_steps = []
         # Navigate to empty cells only
-        print(f"Possible steps: {possible_steps}")
-        for pos in possible_steps:
+        print(f"Neighbors: {neighbors}")
+        for pos in neighbors:
             content = self.model.grid.get_cell_list_contents(pos)
             print(len(content))
             if(len(content) != 0):
                 print(f"{pos} is not empty, and contains a {content[0].type_str}")
             else:
                 print(f"{pos} is in fact empty")
-                filtered_steps.append(pos)
-        print(f"Filtered steps: {filtered_steps}")
+                possible_steps.append(pos)
+        print(f"Possible steps: {possible_steps}")
 
         # Ensure that the agent can move
-        if len(filtered_steps) > 0:
+        if len(possible_steps) > 0:
             # Choose a random direction
-            new_position = self.random.choice(filtered_steps)
+            new_position = self.random.choice(possible_steps)
         else:
             new_position = self.pos
             print(f"Agent {self.unique_id} is stuck! :(")
@@ -316,4 +316,8 @@ class RandomModel(Model):
 
     def step(self):
         '''Advance the model by one step.'''
+        # Check if all boxes are in a depot and stop the simulation if so
+        if all([depots[i].get_packages() == 5 for i in depots]):
+            self.running = False
+            print("All boxes are in a depot, simulation is over!")
         self.schedule.step()
