@@ -10,7 +10,7 @@
 # Python flask server to interact with Unity. Based on the code provided by Sergio Ruiz.
 # Octavio Navarro. October 2021
 """
-from RandomAgents import RandomModel, RandomAgent, ObstacleAgent, PackageAgent, DepotAgent
+from RandomAgents import RandomModel, RandomAgent, ObstacleAgent, PackageAgent, DepotAgent, agents, depots, packages
 from mesa.visualization.modules import CanvasGrid, BarChartModule, PieChartModule
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import UserSettableParameter
@@ -93,8 +93,6 @@ def initModel():
         height = int(request.form.get('height'))
         currentStep = 0
 
-        # print(request.form)
-        # print(number_agents, number_packages, number_depots, width, height)
         randomModel = RandomModel(number_agents, number_packages, number_depots, width, height)
 
         return jsonify({"message":"Parameters recieved, model initiated."})
@@ -104,29 +102,25 @@ def getAgents():
     global randomModel
 
     if request.method == 'GET':
-        agentPositions = [{"id": str(a.unique_id), "x": x, "y":0, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, RandomAgent)]
-        # read whether agent is carrying a package
-        # agentStates = [{"id": str(a.unique_id), "hasPackage": a.hasPackage} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, RandomAgent)]
-        agentStates = [{"id": str(a.unique_id)} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, RandomAgent)]
-
-        return jsonify({'positions':agentPositions, "states":agentStates})
+        agentData = [{"id": str(agent.unique_id), "x": agent.pos[0], "y":0, "z": agent.pos[1], "has_package": agent.has_package} for agent in agents.values()]
+        return jsonify({'data': agentData})
 
 @app.route('/getPackages', methods=['GET'])
 def getPackages():
     global randomModel
 
     if request.method == 'GET':
-        packagePositions = [{"id": str(a.unique_id), "x": x, "y":0.3, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, PackageAgent)]
-        
-        return jsonify({'positions':packagePositions})
+        # Get all packages and build a list of dictionaries with their id, position and state
+        packageData = [{"id": str(package.unique_id), "x": package.x, "y": 0.3, "z":package.y, "picked_up": package.get_state()} for package in packages.values()]
+        return jsonify({'data':packageData})
 
 @app.route('/getDepots', methods=['GET'])
 def getDepots():
     global randomModel
 
     if request.method == 'GET':
-        depotData = [{"id": str(a.unique_id), "package_num": str(a.get_packages()), "x": x, "y":0.01, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, DepotAgent)]
-        
+        # Get depot positions and package amounts from the global depot dictionary
+        depotData = [{"id": str(depot.unique_id), "x": depot.x, "y":0.01, "z": depot.y, "package_num": depot.packages} for depot in depots.values()]
         return jsonify({'data':depotData})
 
 @app.route('/getObstacles', methods=['GET'])

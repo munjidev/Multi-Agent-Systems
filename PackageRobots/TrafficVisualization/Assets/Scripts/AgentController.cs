@@ -30,15 +30,24 @@ public class AgentData
         this.z = z;
     }
 }
-// public class DepotData : AgentData
-// {
-//     public int package_num;
+[Serializable]
+public class RobotData
+{
+    public string id;
+    public float x, y, z;
+    public bool has_package;
 
-//     public DepotData(string id, int package_num, float x, float y, float z) : base(id, x, y, z)
-//     {
-//         this.package_num = package_num;
-//     }
-// }
+    public RobotData(string id, bool has_package, float x, float y, float z)
+    {
+        this.id = id;
+        this.has_package = has_package;
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+}
+
+[Serializable]
 public class DepotData
 {
     public string id;
@@ -54,18 +63,25 @@ public class DepotData
         this.z = z;
     }
 }
-public class RobotData : AgentData
-{
-    public bool hasPackage;
 
-    public RobotData(string id, float x, float y, float z, bool hasPackage) : base(id, x, y, z)
+[Serializable]
+public class PackageData
+{
+    public string id;
+    public bool picked_up;
+    public float x, y, z;
+
+    public PackageData(string id, bool picked_up, float x, float y, float z)
     {
-        this.hasPackage = hasPackage;
+        this.id = id;
+        this.picked_up = picked_up;
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 }
 
 [Serializable]
-
 public class AgentsData
 {
     public List<AgentData> positions;
@@ -73,6 +89,15 @@ public class AgentsData
     public AgentsData() => this.positions = new List<AgentData>();
 }
 
+[Serializable]
+public class RobotsData
+{
+    public List<RobotData> data;
+
+    public RobotsData() => this.data = new List<RobotData>();
+}
+
+[Serializable]
 public class DepotsData
 {
     public List<DepotData> data;
@@ -80,12 +105,12 @@ public class DepotsData
     public DepotsData() => this.data = new List<DepotData>();
 }
 
-public class RobotsData : AgentsData
+[Serializable]
+public class PackagesData
 {
-    public List<RobotData> hasPackage;
+    public List<PackageData> data;
 
-    public RobotsData() => this.hasPackage = new List<RobotData>();
-    // this.hasPackage = new List<Boolean>();
+    public PackagesData() => this.data = new List<PackageData>();
 }
 
 
@@ -99,13 +124,15 @@ public class AgentController : MonoBehaviour
     string getObstaclesEndpoint = "/getObstacles";
     string sendConfigEndpoint = "/init";
     string updateEndpoint = "/update";
-    RobotsData robotsData;
-    AgentsData agentsData, packagesData, obstacleData;
+
+    AgentsData obstacleData;
+    RobotsData agentsData;
     DepotsData depotsData;
-    Dictionary<string, GameObject> agents, depots;
+    PackagesData packagesData;
+    Dictionary<string, GameObject> agents, depots, packages;
     Dictionary<string, Vector3> prevPositions, currPositions;
 
-    bool updated = false, agentsStarted = false, depotsStarted = false;
+    bool updated = false, agentsStarted = false, depotsStarted = false, packagesStarted = false;
 
     public GameObject agentPrefab, obstaclePrefab, packagePrefab, depotPrefab, floor;
     public int NAgents, NPackages, width, height;
@@ -115,10 +142,9 @@ public class AgentController : MonoBehaviour
 
     void Start()
     {
-        robotsData = new RobotsData();
-        agentsData = new AgentsData();
+        agentsData = new RobotsData();
         depotsData = new DepotsData();
-        packagesData = new AgentsData();
+        packagesData = new PackagesData();
         obstacleData = new AgentsData();
 
         prevPositions = new Dictionary<string, Vector3>();
@@ -126,6 +152,7 @@ public class AgentController : MonoBehaviour
 
         agents = new Dictionary<string, GameObject>();
         depots = new Dictionary<string, GameObject>();
+        packages = new Dictionary<string, GameObject>();
 
         floor.transform.localScale = new Vector3((float)width/10, 1, (float)height/10);
         floor.transform.localPosition = new Vector3((float)width/2-0.5f, 0, (float)height/2-0.5f);
@@ -137,6 +164,15 @@ public class AgentController : MonoBehaviour
 
     private void Update() 
     {
+        // End the simulation if all the packages have been placed in the depots
+        if (packages.Count == 0)
+        {
+            Debug.Log("SUCCESS!");
+            Debug.Log("All packages have been placed in the depots");
+            UnityEditor.EditorApplication.isPlaying = false;
+        }
+        
+
         if(timer < 0)
         {
             timer = timeToUpdate;
@@ -184,6 +220,7 @@ public class AgentController : MonoBehaviour
             // These coroutines will update the data of the agents, depots and packages
             StartCoroutine(GetAgentsData());
             StartCoroutine(GetDepotsData());
+            StartCoroutine(GetPackagesData());
         }
     }
 
@@ -227,10 +264,10 @@ public class AgentController : MonoBehaviour
             Debug.Log(www.error);
         else
         {
-            agentsData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
+            agentsData = JsonUtility.FromJson<RobotsData>(www.downloadHandler.text);
 
             // Update the positions of the agents
-            foreach(AgentData agent in agentsData.positions)
+            foreach(RobotData agent in agentsData.data)
             {
                 Vector3 newAgentPosition = new Vector3(agent.x, agent.y, agent.z);
 
@@ -245,6 +282,15 @@ public class AgentController : MonoBehaviour
                     if(currPositions.TryGetValue(agent.id, out currentPosition))
                         prevPositions[agent.id] = currentPosition;
                     currPositions[agent.id] = newAgentPosition;
+
+                    if(agent.has_package)
+                    {
+                        agents[agent.id].transform.GetChild(0).gameObject.SetActive(true);
+                    }
+                    else
+                    {
+                        agents[agent.id].transform.GetChild(0).gameObject.SetActive(false);
+                    }
                 }
             }
 
@@ -260,16 +306,38 @@ public class AgentController : MonoBehaviour
  
         if (www.result != UnityWebRequest.Result.Success)
             Debug.Log(www.error);
-        else 
+        else
         {
-            packagesData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
-            
-            Debug.Log(packagesData.positions);
+            packagesData = JsonUtility.FromJson<PackagesData>(www.downloadHandler.text);
+            Debug.Log(www.downloadHandler.text);
 
-            foreach(AgentData package in packagesData.positions)
+            foreach(PackageData package in packagesData.data)
             {
-                Instantiate(packagePrefab, new Vector3(package.x, package.y, package.z), Quaternion.identity);
+
+                if(!packagesStarted)
+                {
+                    Debug.Log("Creating package");
+                    packages[package.id] = Instantiate(packagePrefab, new Vector3(package.x, package.y, package.z), Quaternion.identity);
+                }
+                else
+                {
+                    Debug.Log("Package #" + package.id + " was picked up: " + package.picked_up);
+                    if (package.picked_up)
+                    {
+                        //Hide the prefab instance
+                        packages[package.id].SetActive(false);
+
+                    }
+                    else
+                    {
+                        //Show the prefab instance
+                        packages[package.id].SetActive(true);
+                    }
+                }
             }
+
+            updated = true;
+            if(!packagesStarted) packagesStarted = true;
         }
     }
 
@@ -283,16 +351,9 @@ public class AgentController : MonoBehaviour
             Debug.Log(www.error);
         else
         {
-            try
-            {
-                depotsData = JsonUtility.FromJson<DepotsData>(www.downloadHandler.text);
-            }
-            catch (Exception e)
-            {
-                Debug.Log("|||||||"+e);
-            }
-            Debug.Log(www.downloadHandler.text);
-            Debug.Log(depotsData.data[0]);
+            
+            depotsData = JsonUtility.FromJson<DepotsData>(www.downloadHandler.text);
+            // Debug.Log(www.downloadHandler.text);
 
             foreach(DepotData depot in depotsData.data)
             {
@@ -303,7 +364,7 @@ public class AgentController : MonoBehaviour
                 }
                 else
                 {
-                    Debug.Log("Package number: "+ depot.package_num);
+                    Debug.Log("Depot #" + depot.id + " has " + depot.package_num + " packages");
                     if (depot.package_num==0)
                     {
                         depots[depot.id].transform.GetChild(0).gameObject.SetActive(false);
