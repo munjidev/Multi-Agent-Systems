@@ -50,14 +50,14 @@ class RandomModel(Model):
                     print(f"Road: {agent.unique_id} Direction: {agent.direction}")
                     
                     # Get the neighbors by their coordinates
-                    n_ul = self.grid.get_cell_list_contents(agent.pos[0]-1, agent.pos[1]+1)
-                    n_up = self.grid.get_cell_list_contents(agent.pos[0], agent.pos[1]+1)
-                    n_ur = self.grid.get_cell_list_contents(agent.pos[0]+1, agent.pos[1]+1)
-                    n_right = self.grid.get_cell_list_contents(agent.pos[0]+1, agent.pos[1])
-                    n_dl = self.grid.get_cell_list_contents(agent.pos[0]-1, agent.pos[1]-1)
-                    n_dr = self.grid.get_cell_list_contents(agent.pos[0]+1, agent.pos[1]-1)
-                    n_down = self.grid.get_cell_list_contents(agent.pos[0], agent.pos[1]-1)
-                    n_left = self.grid.get_cell_list_contents(agent.pos[0]-1, agent.pos[1])
+                    n_ul = self.grid.get_cell_list_contents(x-1, y+1)
+                    n_up = self.grid.get_cell_list_contents(x, y+1)
+                    n_ur = self.grid.get_cell_list_contents(x+1, y+1)
+                    n_right = self.grid.get_cell_list_contents(x+1, y)
+                    n_dl = self.grid.get_cell_list_contents(x-1, y-1)
+                    n_dr = self.grid.get_cell_list_contents(x+1, y-1)
+                    n_down = self.grid.get_cell_list_contents(x, y-1)
+                    n_left = self.grid.get_cell_list_contents(x-1, y)
 
                     # Check if coordinate contains a road or a traffic light, and generate their neighbors
 
