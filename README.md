@@ -7,7 +7,7 @@ As shown below, each vehicle agent navigates towards its destination building, f
 
 ## Required software
 
-It is necessary to install the Unity editor version 2021.3.12f1 via the Unity Hub. You can [downlaod the hub](https://unity.com/download#how-get-started) via Unity's website.
+It is necessary to install the Unity editor version 2021.3.13f1 via the Unity Hub. You can [downlaod the hub](https://unity.com/download#how-get-started) via Unity's website.
 
 [Python](https://www.python.org/) is also necessary. We reccommend instlling the [latest version](https://www.python.org/downloads/) via Python's website, or, alternatively, install it via [Anaconda](https://www.anaconda.com/).
 
