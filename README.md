@@ -27,7 +27,7 @@ Also, make sure to download the latest version of [Visual Studio Community](http
 
 ## Getting started
 
-The current project is based on the Unity editor version 2021.3.12f1 for long term support. As for python, the project uses Python version 3.8, however the project should work with more recent stable versions. For ease of use, [Miniconda](https://docs.conda.io/en/latest/miniconda.html) will be used in order to demonstrate environment setup and library installation.
+The current project is based on the Unity editor version 2021.3.13f1 for long term support. As for python, the project uses Python version 3.8, however the project should work with more recent stable versions. For ease of use, [Miniconda](https://docs.conda.io/en/latest/miniconda.html) will be used in order to demonstrate environment setup and library installation.
 
 To get started, make sure to download this repository to your diretory of choice.
 
@@ -44,6 +44,6 @@ The environment should now have the required libraries for the project to run. W
 
 ## Resources
 
-* You can view our scheduled tasks and requirements within our [Trello](https://trello.com/b/hyh2nYDJ/tc2008b-traffic-simulator)<br />
+* You can view our scheduled tasks and requirements within our [Trello](https://trello.com/b/hyh2nYDJ/tc2008b-traffic-simulator). <br />
 
 * Our [Google Drive](https://drive.google.com/drive/u/0/folders/0AFf2VcX-DtjFUk9PVA) used for class deliverables.
