@@ -37,20 +37,10 @@ class Car_Agent(Agent):
             self.model.grid.move_agent(self, next_move)
             self.steps_taken+=1
 
-        # If the cell is empty, moves the agent to that cell; otherwise, it stays at the same position
-        # if freeSpaces[self.direction]:
-        #     self.model.grid.move_agent(self, possible_steps[self.direction])
-        #     print(f"Se mueve de {self.pos} a {possible_steps[self.direction]}; direction {self.direction}")
-        # else:
-        #     print(f"No se puede mover de {self.pos} en esa direccion.")
-
     def step(self):
         """ 
         Determines the new direction it will take, and then moves
         """
-        # self.direction = self.random.randint(0,8)
-        # print(f"Agente: {self.unique_id} movimiento {self.direction}")
-        # self.move()
         pass
 
 class Traffic_Light_Agent(Agent):
@@ -97,3 +87,12 @@ class Road_Agent(Agent):
 
     def step(self):
         pass
+
+class Car_Spawner_Agent(Agent):
+    """
+    Car spawner agent. Spawns cars regularly in a given position.
+    """
+    def __init__(self, unique_id, model, direction="Left"):
+        super().__init__(unique_id, model)
+        self.direction = direction
+
