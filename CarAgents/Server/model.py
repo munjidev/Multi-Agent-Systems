@@ -43,12 +43,24 @@ class RandomModel(Model):
         
         graph = self.generate_graph()
         # print(graph)
-        self.print_graph()
+        # self.print_graph()
 
-        self.num_agents = N
+        # TODO: Add car agents to the model with a potential separate function...
+        # self.num_agents = N
+        # print(self.num_agents)
+        # # Add N cars to the grid at random positions on cells where a road agent is present
+        # for i in range(self.num_agents):
+        #     # Choose a random position on the grid
+        #     x = self.random.randrange(self.width)
+        #     y = self.random.randrange(self.height)
+
+        #     # If there is no agent on that position, add a new one
+        #     agent = Car_Agent(f"cr_{i+100}", self)
+        #     self.grid.place_agent(agent, (x, y))
+        #     self.schedule.add(agent)
+
         # print(self.num_agents)
         self.running = True
-
 
     def generate_graph(self):
         # Generate a graph of the streets
