@@ -26,19 +26,19 @@ class RandomModel(Model):
             for r, row in enumerate(lines):
                 for c, col in enumerate(row):
                     if col in ["v", "^", ">", "<"]:
-                        agent = Road_Agent(f"r{r*self.width+c}", self, dataDictionary[col])
+                        agent = Road_Agent(f"r_{r*self.width+c}", self, dataDictionary[col])
                         self.grid.place_agent(agent, (c, self.height - r - 1))
                     elif col in ["S", "s"]:
-                        agent = Traffic_Light_Agent(f"tl{r*self.width+c}", self, False if col == "S" else True, int(dataDictionary[col]))
+                        agent = Traffic_Light_Agent(f"tl_{r*self.width+c}", self, False if col == "S" else True, int(dataDictionary[col]))
                         self.grid.place_agent(agent, (c, self.height - r - 1))
                         self.schedule.add(agent)
                         # Additionally, add a road agent with same direction as road before traffic light
 
                     elif col == "#":
-                        agent = Obstacle_Agent(f"ob{r*self.width+c}", self)
+                        agent = Obstacle_Agent(f"ob_{r*self.width+c}", self)
                         self.grid.place_agent(agent, (c, self.height - r - 1))
                     elif col == "D":
-                        agent = Destination_Agent(f"d{r*self.width+c}", self)
+                        agent = Destination_Agent(f"d_{r*self.width+c}", self)
                         self.grid.place_agent(agent, (c, self.height - r - 1))
         
         graph = self.generate_graph()
@@ -170,8 +170,8 @@ class RandomModel(Model):
             neighbors = ""
             for neighbor in value:
                 if neighbor != None:
-                    neighbors += f"{neighbor.unique_id}{neighbor.pos}, "
-            print(f"Node: {key} -> {neighbors}")
+                    neighbors += f"{neighbor.unique_id}{neighbor.pos}  |  "
+            print(f"Node {key} -->  {neighbors}")
 
     def step(self):
         '''Advance the model by one step.'''
