@@ -44,6 +44,6 @@ The environment should now have the required libraries for the project to run. W
 
 ## Resources
 
-You can view our scheduled tasks and requirements within our [Trello](https://trello.com/b/hyh2nYDJ/tc2008b-traffic-simulator)<br />
+* You can view our scheduled tasks and requirements within our [Trello](https://trello.com/b/hyh2nYDJ/tc2008b-traffic-simulator)<br />
 
-You can also visit our [Google Drive](https://drive.google.com/drive/u/0/folders/0AFf2VcX-DtjFUk9PVA) used for class deliverables.
+* Our [Google Drive](https://drive.google.com/drive/u/0/folders/0AFf2VcX-DtjFUk9PVA) used for class deliverables.
