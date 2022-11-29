@@ -3,7 +3,7 @@ from mesa.time import RandomActivation
 from mesa.space import MultiGrid
 from agent import *
 import json
-from graph2 import *
+from WeightedGraph import *
 
 class RandomModel(Model):
     """ 
@@ -12,10 +12,13 @@ class RandomModel(Model):
         N: Number of agents in the simulation
         height, width: The size of the grid to model
     """
+    destinations = []
+
     def __init__(self, N):
 
         dataDictionary = json.load(open("mapDictionary.txt"))
-        self.graph = Graph(self)
+
+        self.node_dict = {}
 
         with open('base.txt') as baseFile:
             lines = baseFile.readlines()
@@ -42,12 +45,13 @@ class RandomModel(Model):
                     elif col == "D":
                         agent = Destination_Agent(f"d_{r*self.width+c}", self)
                         self.grid.place_agent(agent, (c, self.height - r - 1))
+                        self.destinations.append((c, self.height - r - 1))
                     elif col == "z":
                         agent = Car_Spawner_Agent(f"cs_{r*self.width+c}", self)
                         self.grid.place_agent(agent, (c, self.height - r - 1))
         
-        graph = self.generate_graph()
-        # print(graph)
+        # Generate weighted graph for A* pathfinding
+        self.graph = WeightedGraph(self, self.generate_graph())
         self.print_graph()
 
         # TODO: Add car agents to the model with a potential separate function...
@@ -157,37 +161,37 @@ class RandomModel(Model):
                                 # If it is any of the given 4 adjacent cells, and it doesn't point at me, include it.
                                 if (neighbor == n_up and (neighbor.direction == "Left" or neighbor.direction == "Up" or neighbor.direction == "Right")) or (neighbor == n_right and (neighbor.direction == "Up" or neighbor.direction == "Right" or neighbor.direction == "Down")) or (neighbor == n_down and (neighbor.direction == "Right" or neighbor.direction == "Down" or neighbor.direction == "Left")) or (neighbor == n_left and (neighbor.direction == "Down" or neighbor.direction == "Left" or neighbor.direction == "Up")):
                                     # print(f"    I can go to {neighbor.unique_id}!")
-                                    new_neighbors.append(neighbor)
+                                    new_neighbors.append(neighbor.pos)
                                 # If any of the 4 diagonals points outwards, include it
                                 elif(neighbor == n_ur and (neighbor.direction == "Up" or neighbor.direction == "Right")) or (neighbor == n_dr and (neighbor.direction == "Right" or neighbor.direction == "Down")) or (neighbor == n_dl and (neighbor.direction == "Down" or neighbor.direction == "Left")) or (neighbor == n_ul and (neighbor.direction == "Left" or neighbor.direction == "Up")):
                                     # print(f"    I can go to {neighbor.unique_id}!")     
-                                    new_neighbors.append(neighbor)
+                                    new_neighbors.append(neighbor.pos)
 
                             elif isinstance(neighbor, Traffic_Light_Agent):
                                 if not isinstance(agent, Traffic_Light_Agent):
                                     if agent.direction == "Up" or agent.direction == "Down":
                                         if not (neighbor == n_right or neighbor == n_left):
                                             # print(f"    I can go to {neighbor.unique_id}")
-                                            new_neighbors.append(neighbor)
+                                            new_neighbors.append(neighbor.pos)
                                     elif agent.direction == "Left" or agent.direction == "Right":
                                         if not(neighbor == n_up or neighbor == n_down):
                                             # print(f"    I can go to {neighbor.unique_id}")
-                                            new_neighbors.append(neighbor)
+                                            new_neighbors.append(neighbor.pos)
                                     else:
                                         # print(f"    I can go to {neighbor.unique_id}")
-                                        new_neighbors.append(neighbor)
+                                        new_neighbors.append(neighbor.pos)
                             # else:
                             #     print(f"    I can't go to a {neighbor.unique_id}")
                     # Add the current agent to the dictionary with its id as the key and its neighbors as the value
                     # self.graph[f"{agent.unique_id}{agent.pos}"] = new_neighbors
                     
-                    self.graph[f"{agent.pos}"] = new_neighbors
+                    self.node_dict[agent.pos] = new_neighbors
 
         print("Finished generating graph.")
-        return self.graph   
+        return self.node_dict   
 
     def print_graph(self):
-        for key, value in self.graph.items():
+        for key, value in self.node_dict.items():
             neighbors = ""
             for neighbor in value:
                 if neighbor != None:

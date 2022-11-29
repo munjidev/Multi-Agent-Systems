@@ -1,4 +1,6 @@
 from mesa import Agent
+from graph import a_star_search
+from model import *
 
 class Car_Agent(Agent):
     """
@@ -15,28 +17,70 @@ class Car_Agent(Agent):
             model: Model reference for the agent
         """
         super().__init__(unique_id, model)
+        # Obtain random destination position from the list within the model
+        self.destination = self.random.choice(self.model.destinations)
         
 
     def move(self):
         """ 
         Determines if the agent can move in the direction that was chosen
         """
-        possible_steps = self.model.grid.get_neighborhood(
-            self.pos,
-            moore=True, # Boolean for whether to use Moore neighborhood (including diagonals) or Von Neumann (only up/down/left/right).
-            include_center=True) 
+        path_list, total_cost = self.calculate_route()
+        possible_steps = self.model.node_dict
+        next_move = path_list[0]
+        possible_moves = possible_steps[self.pos]
+
+        all_moves = []
+        all_moves.append(next_move)
+        for move in possible_moves:
+            # Discard path_list[0] already in possible_moves
+            if move not in possible_moves:
+                all_moves.append(move)
         
-        # Checks which grid cells are empty
-        freeSpaces = list(map(self.model.grid.is_cell_empty, possible_steps))
+        # Cehck wether the goal position has not been reached
+        if self.pos != self.path_list[-1]:
+            # Iterate possible moves list and check wether the agent is blocked. Else if no viable path can be found, the agent is stuck, and should remain in its current position. 
+            for pos in possible_moves:
+                if self.check_pos_contents(pos):
+                    # Move agent to the position
+                    self.model.grid.move_agent(self, pos)
+                else:
+                    pass
+        else:
+            # Remove self from grid
+            self.model.grid.remove_agent(self)
 
-        next_moves = [p for p,f in zip(possible_steps, freeSpaces) if f == True]
-       
-        next_move = self.random.choice(next_moves)
-        # Now move:
-        if self.random.random() < 0.1:
-            self.model.grid.move_agent(self, next_move)
-            self.steps_taken+=1
+    def check_pos_contents(self, pos):
+        """
+        Checks the contents of the cell the agent is trying to move to.
+        Return False if the agent is being blocked by another agent, or if the next cell contains a red light.
+        """
+        cell_contents = self.model.grid.get_cell_list_contents(pos)[0]
 
+        if isinstance(cell_contents, Car_Agent):
+            return False
+        elif isinstance(cell_contents, Traffic_Light_Agent):
+            if cell_contents.state == "red":
+                return False
+        else:
+            # Will accept street cells and destination cells
+            return True
+
+    def calculate_route(self):
+        # Generate path by calling the A* search algorithm with the current position and a randomly chosen destination
+        path_dict, total_cost = a_star_search(self.model.graph, self.pos, self.destination)
+
+        # Position list in the order in which A* generated the path dictionary
+        path_list = []
+
+        for key, value in path_dict:
+            if key not in path_list:
+                path_list.append(key) 
+            if value not in path_list:
+                path_list.append(value)
+        
+        return path_list, total_cost
+        
     def step(self):
         """ 
         Determines the new direction it will take, and then moves

@@ -8,18 +8,11 @@ from __future__ import annotations
 # some of these types are deprecated: https://www.python.org/dev/peps/pep-0585/
 from typing import Protocol, Tuple, TypeVar, Optional
 import heapq
+import WeightedGraph
 
 T = TypeVar('T')
 Location = TypeVar('Location')
 GridLocation = Tuple[int, int]
-
-class Graph(Protocol):
-    def neighbors(self, id: Location) -> list[Location]: pass
-
-
-class WeightedGraph(Graph):
-    def cost(self, from_id: Location, to_id: Location) -> float: pass
-
 
 class PriorityQueue:
     def __init__(self):
