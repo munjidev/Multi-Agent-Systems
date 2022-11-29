@@ -42,7 +42,9 @@ class RandomModel(Model):
                         self.grid.place_agent(agent, (c, self.height - r - 1))
         
         graph = self.generate_graph()
-        
+        # print(graph)
+        self.print_graph()
+
         self.num_agents = N
         # print(self.num_agents)
         self.running = True
@@ -108,71 +110,58 @@ class RandomModel(Model):
                         if n_down != None:
                             if isinstance(n_down, Road_Agent):
                                 if n_down.direction == "Up":
-                                    print("facing up")
+                                    # print("facing up")
                                     neighbors = [n_left, n_ul, n_up, n_ur, n_right]
                         if n_left != None:
                             if isinstance(n_left, Road_Agent): 
                                 if n_left.direction == "Right":
-                                    print("facing right")
+                                    # print("facing right")
                                     neighbors = [n_up, n_ur, n_right, n_dr, n_down]
                         if n_up != None:
                             if isinstance(n_up, Road_Agent):
                                 if n_up.direction == "Down":
-                                    print("facing down")
+                                    # print("facing down")
                                     neighbors = [n_right, n_dr, n_down, n_dl, n_left]
                         if n_right != None:
                             if isinstance(n_right, Road_Agent):
                                 if n_right.direction == "Left":
-                                    print("facing left")
+                                    # print("facing left")
                                     neighbors = [n_down, n_dl, n_left, n_ul, n_up]
                     
-                    print(f"N_DR: {n_dr}")
                     new_neighbors = []
                     # Filter out neighbors that are not roads, or if they are roads pointing towards the current road
-                    print(f"I AM {agent.unique_id}")
-                    print(f"NEIGHBORS: {len(neighbors)}")
                     for neighbor in neighbors:
                         if neighbor != None:
-                            print(f"CHECK FOR: {neighbor.unique_id}")
+                            
                             # print(neighbor.unique_id)
                             if isinstance(neighbor, Road_Agent):
                                 # If it is any of the given 4 adjacent cells, and it doesn't point at me, include it.
                                 if (neighbor == n_up and (neighbor.direction == "Left" or neighbor.direction == "Up" or neighbor.direction == "Right")) or (neighbor == n_right and (neighbor.direction == "Up" or neighbor.direction == "Right" or neighbor.direction == "Down")) or (neighbor == n_down and (neighbor.direction == "Right" or neighbor.direction == "Down" or neighbor.direction == "Left")) or (neighbor == n_left and (neighbor.direction == "Down" or neighbor.direction == "Left" or neighbor.direction == "Up")):
+                                    # print(f"    I can go to {neighbor.unique_id}!")
                                     new_neighbors.append(neighbor)
-                                    print(f"    I can go to {neighbor.unique_id}!")
                                 # If any of the 4 diagonals points outwards, include it
                                 elif(neighbor == n_ur and (neighbor.direction == "Up" or neighbor.direction == "Right")) or (neighbor == n_dr and (neighbor.direction == "Right" or neighbor.direction == "Down")) or (neighbor == n_dl and (neighbor.direction == "Down" or neighbor.direction == "Left")) or (neighbor == n_ul and (neighbor.direction == "Left" or neighbor.direction == "Up")):
+                                    # print(f"    I can go to {neighbor.unique_id}!")     
                                     new_neighbors.append(neighbor)
-                                    print(f"    I can go to {neighbor.unique_id}!")     
-                                else:
-                                    print(f"    I can't go to {neighbor.unique_id}!")
-                                # elif (neighbor == n_dl and (neighbor.direction == "Left" or neighbor.direction == "Down")) or (neighbor == n_dr and (neighbor.direction == "Right" or neighbor.direction == "Down")) or (neighbor == n_ul and (neighbor.direction == "Left" or neighbor.direction == "Up")) or (neighbor == n_ur and (neighbor.direction == "Right" or neighbor.direction == "Up")):
-                                #     new_neighbors.append(neighbor)  
 
                             elif isinstance(neighbor, Traffic_Light_Agent):
-                                if agent.direction == "Up" or agent.direction == "Down":
-                                    if not (neighbor == n_right or neighbor == n_left):
-                                        print(f"    I can go to {neighbor.unique_id}")
-                                        new_neighbors.append(neighbor)
+                                if not isinstance(agent, Traffic_Light_Agent):
+                                    if agent.direction == "Up" or agent.direction == "Down":
+                                        if not (neighbor == n_right or neighbor == n_left):
+                                            # print(f"    I can go to {neighbor.unique_id}")
+                                            new_neighbors.append(neighbor)
+                                    elif agent.direction == "Left" or agent.direction == "Right":
+                                        if not(neighbor == n_up or neighbor == n_down):
+                                            # print(f"    I can go to {neighbor.unique_id}")
+                                            new_neighbors.append(neighbor)
                                     else:
-                                        print(f"    I can't go to {neighbor.unique_id}")
-                                elif agent.direction == "Left" or agent.direction == "Right":
-                                    if not(neighbor == n_up or neighbor == n_down):
-                                        print(f"    I can go to {neighbor.unique_id}")
+                                        # print(f"    I can go to {neighbor.unique_id}")
                                         new_neighbors.append(neighbor)
-                                    else:
-                                        print(f"    I can't go to {neighbor.unique_id}")
-                                else:
-                                    print(f"    I can go to {neighbor.unique_id}")
-                                    new_neighbors.append(neighbor)
-                            else:
-                                print(f"    I can't go to a {neighbor.unique_id}")
-                        else:
-                            print("(BORDER)")
+                            # else:
+                            #     print(f"    I can't go to a {neighbor.unique_id}")
                     # Add the current agent to the dictionary with its id as the key and its neighbors as the value
-                    self.graph[agent.unique_id] = new_neighbors
+                    self.graph[f"{agent.unique_id}{agent.pos}"] = new_neighbors
 
-        self.print_graph()
         print("Finished generating graph.")
         return self.graph   
 
@@ -181,8 +170,8 @@ class RandomModel(Model):
             neighbors = ""
             for neighbor in value:
                 if neighbor != None:
-                    neighbors += f"{neighbor.unique_id}, "
-            print(f"Agent: {key} -> {neighbors}")
+                    neighbors += f"{neighbor.unique_id}{neighbor.pos}, "
+            print(f"Node: {key} -> {neighbors}")
 
     def step(self):
         '''Advance the model by one step.'''
