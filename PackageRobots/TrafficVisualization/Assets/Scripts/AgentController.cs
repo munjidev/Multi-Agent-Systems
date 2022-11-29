@@ -164,15 +164,6 @@ public class AgentController : MonoBehaviour
 
     private void Update() 
     {
-        // End the simulation if all the packages have been placed in the depots
-        if (packages.Count == 0)
-        {
-            Debug.Log("SUCCESS!");
-            Debug.Log("All packages have been placed in the depots");
-            UnityEditor.EditorApplication.isPlaying = false;
-        }
-        
-
         if(timer < 0)
         {
             timer = timeToUpdate;
@@ -196,15 +187,6 @@ public class AgentController : MonoBehaviour
                 agents[agent.Key].transform.localPosition = interpolated;
                 if(direction != Vector3.zero) agents[agent.Key].transform.rotation = Quaternion.LookRotation(direction);
             }
-
-            foreach (var depot in depots)
-            {
-                //Change visible children for the given depot depending on the number of packages
-
-            }
-
-            // float t = (timer / timeToUpdate);
-            // dt = t * t * ( 3f - 2f*t);
         }
     }
  
@@ -217,6 +199,21 @@ public class AgentController : MonoBehaviour
             Debug.Log(www.error);
         else 
         {
+            //End simulation if all packages states are picked up
+            for (int i = 0; i < packagesData.data.Count; i++)
+            {
+                if (!packagesData.data[i].picked_up)
+                {
+                    break;
+                }
+                if (i == packagesData.data.Count - 1)
+                {
+                    Debug.Log("SUCCESS");
+                    Debug.Log("All packages picked up");
+                    UnityEditor.EditorApplication.isPlaying = false;
+                }
+            }
+
             // These coroutines will update the data of the agents, depots and packages
             StartCoroutine(GetAgentsData());
             StartCoroutine(GetDepotsData());
@@ -343,7 +340,6 @@ public class AgentController : MonoBehaviour
 
     IEnumerator GetDepotsData()
     {
-        Debug.Log("Getting Depots data");
         UnityWebRequest www = UnityWebRequest.Get(serverUrl + getDepotsEndpoint);
         yield return www.SendWebRequest();
  
