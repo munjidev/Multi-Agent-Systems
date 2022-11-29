@@ -3,6 +3,7 @@ from mesa.time import RandomActivation
 from mesa.space import MultiGrid
 from agent import *
 import json
+from graph2 import *
 
 class RandomModel(Model):
     """ 
@@ -14,6 +15,7 @@ class RandomModel(Model):
     def __init__(self, N):
 
         dataDictionary = json.load(open("mapDictionary.txt"))
+        self.graph = Graph(self)
 
         with open('base.txt') as baseFile:
             lines = baseFile.readlines()
@@ -40,24 +42,29 @@ class RandomModel(Model):
                     elif col == "D":
                         agent = Destination_Agent(f"d_{r*self.width+c}", self)
                         self.grid.place_agent(agent, (c, self.height - r - 1))
+                    elif col == "z":
+                        agent = Car_Spawner_Agent(f"cs_{r*self.width+c}", self)
+                        self.grid.place_agent(agent, (c, self.height - r - 1))
         
         graph = self.generate_graph()
         # print(graph)
-        # self.print_graph()
+        self.print_graph()
 
         # TODO: Add car agents to the model with a potential separate function...
-        # self.num_agents = N
-        # print(self.num_agents)
-        # # Add N cars to the grid at random positions on cells where a road agent is present
-        # for i in range(self.num_agents):
-        #     # Choose a random position on the grid
-        #     x = self.random.randrange(self.width)
-        #     y = self.random.randrange(self.height)
+        self.num_agents = N
+        print(self.num_agents)
+        # Add N cars to the grid at random positions on cells where a road agent is present
+        for i in range(self.num_agents):
+            c = Car_Agent(f"car_{i}", self)
+            # self.schedule.add(agent)
 
-        #     # If there is no agent on that position, add a new one
-        #     agent = Car_Agent(f"cr_{i+100}", self)
-        #     self.grid.place_agent(agent, (x, y))
-        #     self.schedule.add(agent)
+            pos_gen = lambda w, h: (self.random.randrange(w), self.random.randrange(h))
+            pos = pos_gen(self.width, self.height)
+
+            # Add car only if there is a road agent at the position and no other cars.
+            while not isinstance(self.grid.get_cell_list_contents([pos])[0], Road_Agent) or len(self.grid.get_cell_list_contents([pos])) > 1:
+                pos = pos_gen(self.width, self.height)
+            self.grid.place_agent(c, pos)
 
         # print(self.num_agents)
         self.running = True
@@ -172,7 +179,9 @@ class RandomModel(Model):
                             # else:
                             #     print(f"    I can't go to a {neighbor.unique_id}")
                     # Add the current agent to the dictionary with its id as the key and its neighbors as the value
-                    self.graph[f"{agent.unique_id}{agent.pos}"] = new_neighbors
+                    # self.graph[f"{agent.unique_id}{agent.pos}"] = new_neighbors
+                    
+                    self.graph[f"{agent.pos}"] = new_neighbors
 
         print("Finished generating graph.")
         return self.graph   
