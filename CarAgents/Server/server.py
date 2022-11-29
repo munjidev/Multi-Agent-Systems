@@ -8,24 +8,28 @@ def agent_portrayal(agent):
     
     portrayal = {"Shape": "rect",
                  "Filled": "true",
-                 "Layer": 1,
+                 "Layer": 0,
                  "w": 1,
                  "h": 1
                  }
 
-    if (isinstance(agent, Road_Agent)):
-        portrayal["Color"] = "grey"
-        portrayal["Layer"] = 0
-
     if (isinstance(agent, Car_Agent)):
         portrayal["Shape"] = "circle"
         portrayal["Color"] = "blue"
+        portrayal["Layer"] = 1
+        portrayal["r"] = 0.5
+    
+
+    if (isinstance(agent, Road_Agent)):
+        portrayal["Color"] = "grey"
         portrayal["Layer"] = 0
-        portrayal["w"] = 0.5
-        portrayal["h"] = 0.5
     
     if (isinstance(agent, Destination_Agent)):
         portrayal["Color"] = "lightgreen"
+        portrayal["Layer"] = 0
+    
+    if (isinstance(agent, Car_Spawner_Agent)):
+        portrayal["Color"] = "yellow"
         portrayal["Layer"] = 0
 
     if (isinstance(agent, Traffic_Light_Agent)):
