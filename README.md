@@ -3,6 +3,12 @@ This is the project repo for the Multi-Agent Systems Modeling with Computer Grap
 
 As shown below, each vehicle agent navigates towards its destination building, following road rules such as waiting at a stopsign, changing lanes for turning, and most importantly not crashing into other vehicle agents.
 
+Trello:
+https://trello.com/b/hyh2nYDJ/tc2008b-traffic-simulator
+
+Shared Unit:
+https://drive.google.com/drive/u/0/folders/0AFf2VcX-DtjFUk9PVA
+
 (replit or .gif goes here)
 
 ## Required software
