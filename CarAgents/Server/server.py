@@ -16,6 +16,13 @@ def agent_portrayal(agent):
     if (isinstance(agent, Road_Agent)):
         portrayal["Color"] = "grey"
         portrayal["Layer"] = 0
+
+    if (isinstance(agent, Car_Agent)):
+        portrayal["Shape"] = "circle"
+        portrayal["Color"] = "blue"
+        portrayal["Layer"] = 0
+        portrayal["w"] = 0.5
+        portrayal["h"] = 0.5
     
     if (isinstance(agent, Destination_Agent)):
         portrayal["Color"] = "lightgreen"
@@ -48,6 +55,6 @@ model_params = {"N":5}
 grid = CanvasGrid(agent_portrayal, width, height, 500, 500)
 
 server = ModularServer(RandomModel, [grid], "Traffic Base", model_params)
-                       
-server.port = 8521 # The default
+
+server.port = 8522 # The default
 server.launch()

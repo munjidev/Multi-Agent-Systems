@@ -40,7 +40,15 @@ class RandomModel(Model):
                     elif col == "D":
                         agent = Destination_Agent(f"d{r*self.width+c}", self)
                         self.grid.place_agent(agent, (c, self.height - r - 1))
+        
+        # graph = self.create_graph()
+        
+        self.num_agents = N
+        # print(self.num_agents)
+        self.running = True
 
+
+    def create_graph(self):
         # Generate a graph of the streets
         self.graph = {}    # Generate graph dictionary
         for agents, x, y in self.grid.coord_iter():   # Iterate through all agents
@@ -52,33 +60,33 @@ class RandomModel(Model):
                     gridWidth = self.grid.width - 1
                     gridHeight = self.grid.height - 1
 
-                    n_up = []
-                    n_ul = []
-                    n_ur = []
-                    n_left = []
-                    n_right = []
-                    n_down = []
-                    n_dr = []
-                    n_dl = []
+                    n_up = None
+                    n_ul = None
+                    n_ur = None
+                    n_left = None
+                    n_right = None
+                    n_down = None
+                    n_dr = None
+                    n_dl = None
 
                     # Check if the agents neighbors are not out of bounds
 
                     if (not x+1 > gridWidth) and (not y+1 > gridHeight):
-                        n_ur = self.grid.get_cell_list_contents((x+1, y+1))
+                        n_ur = self.grid.get_cell_list_contents((x+1, y+1))[0]
                     if (not x-1 < 0) and (not y+1 > gridHeight):
-                        n_ul = self.grid.get_cell_list_contents((x-1, y+1))
+                        n_ul = self.grid.get_cell_list_contents((x-1, y+1))[0]
                     if (not x+1 > gridWidth) and (not y-1 < 0):
-                        n_dr = self.grid.get_cell_list_contents((x+1, y-1))
+                        n_dr = self.grid.get_cell_list_contents((x+1, y-1))[0]
                     if (not x-1 < 0) and (not y-1 < 0):
-                        n_dl = self.grid.get_cell_list_contents((x-1, y-1))
+                        n_dl = self.grid.get_cell_list_contents((x-1, y-1))[0]
                     if not x+1 > gridWidth:
-                        n_right = self.grid.get_cell_list_contents((x+1, y))
+                        n_right = self.grid.get_cell_list_contents((x+1, y))[0]
                     if not x-1 < 0:
-                        n_left = self.grid.get_cell_list_contents((x-1, y))
+                        n_left = self.grid.get_cell_list_contents((x-1, y))[0]
                     if not y+1 > gridHeight:
-                        n_up = self.grid.get_cell_list_contents((x, y+1))
+                        n_up = self.grid.get_cell_list_contents((x, y+1))[0]
                     if not y-1 < 0:
-                        n_down = self.grid.get_cell_list_contents((x, y-1))
+                        n_down = self.grid.get_cell_list_contents((x, y-1))[0]
 
                     # Check if coordinate contains a road or a traffic light, and generate their neighbors
 
@@ -95,32 +103,36 @@ class RandomModel(Model):
                     elif isinstance(agent, Traffic_Light_Agent):
                         print(f"Semaphore: {agent.unique_id}")
                         #Check that relative neighbors are roads
-
-                        if len(n_down) != 0:
-                            if isinstance(n_down[0], Road_Agent) and n_down[0].direction == "Up":
-                                neighbors = [n_left, n_ul, n_up, n_ur, n_right]
-                        elif len(n_left)!= 0:
-                            if isinstance(n_left[0], Road_Agent) and n_left[0].direction == "Right":
-                                neighbors = [n_up, n_ur, n_right, n_dr, n_down]
-                        elif len(n_up.length) != 0:
-                            if isinstance(n_up[0], Road_Agent) and n_up[0].direction == "Down":
-                                neighbors = [n_right, n_dr, n_down, n_dl, n_left]
-                        elif len(n_right.length) != 0:
-                            if isinstance(n_right[0], Road_Agent) and n_right[0].direction == "Left":
-                                neighbors = [n_down, n_dl, n_left, n_ul, n_up]
+                        if n_down != None:
+                            if isinstance(n_down, Road_Agent):
+                                if n_down.direction == "Up":
+                                    neighbors = [n_left, n_ul, n_up, n_ur, n_right]
+                        elif n_left != None:
+                            if isinstance(n_left, Road_Agent): 
+                                if n_left.direction == "Right":
+                                    neighbors = [n_up, n_ur, n_right, n_dr, n_down]
+                        elif n_up != None:
+                            if isinstance(n_up, Road_Agent):
+                                if n_up.direction == "Down":
+                                    neighbors = [n_right, n_dr, n_down, n_dl, n_left]
+                        elif n_right != None:
+                            if isinstance(n_right, Road_Agent):
+                                if n_right.direction == "Left":
+                                    neighbors = [n_down, n_dl, n_left, n_ul, n_up]
 
                     # Filter out neighbors that are not roads, or if they are roads pointing towards the current road
-                    print(f"!!! Finnished setting up neighbors !!!")
+                    print(f"!!! Finished setting up neighbors !!!")
                     # Check that neighbors are roads, and discard the ones that are not roads, discard roads pointing to this one
-                    
+
+                    # print(neighbors)
                     for neighbor in neighbors:
-                        print(neighbor)
                         if neighbor != None:
+                            print(neighbor.unique_id)
                             if isinstance(neighbor, Road_Agent):
                                 # Filter invalid directions
-                                if (neighbor == n_up and agent.direction == "Down") or (neighbor == n_down and agent.direction == "Up") or (neighbor == n_left and agent.direction == "Right") or (neighbor == n_right and agent.direction == "Left"):
+                                if (neighbor == n_up and neighbor.direction == "Down") or (neighbor == n_down and neighbor.direction == "Up") or (neighbor == n_left and neighbor.direction == "Right") or (neighbor == n_right and neighbor.direction == "Left"):
                                     neighbors.remove(neighbor)
-                                elif (neighbor == n_ul and (agent.direction == "Down" or agent.direction == "Right")) or (neighbor == n_ur and (agent.direction == "Down" or agent.direction == "Left")) or (neighbor == n_dl and (agent.direction == "Up" or agent.direction == "Right")) or (neighbor == n_dr and (agent.direction == "Up" or agent.direction == "Left")):
+                                elif (neighbor == n_ul and (neighbor.direction == "Down" or neighbor.direction == "Right")) or (neighbor == n_ur and (neighbor.direction == "Down" or neighbor.direction == "Left")) or (neighbor == n_dl and (neighbor.direction == "Up" or neighbor.direction == "Right")) or (neighbor == n_dr and (neighbor.direction == "Up" or neighbor.direction == "Left")):
                                     neighbors.remove(neighbor)
                             else:
                                 neighbors.remove(neighbor)
@@ -128,10 +140,8 @@ class RandomModel(Model):
                         # Add the current agent to the dictionary with its id as the key and its neighbors as the value
                         self.graph[agent.unique_id] = neighbors
 
-        print(self.graph)       
-
-        self.num_agents = N
-        self.running = True
+        print(self.graph)
+        return self.graph   
 
     def step(self):
         '''Advance the model by one step.'''
