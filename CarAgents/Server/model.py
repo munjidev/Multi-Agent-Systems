@@ -41,14 +41,14 @@ class RandomModel(Model):
                         agent = Destination_Agent(f"d{r*self.width+c}", self)
                         self.grid.place_agent(agent, (c, self.height - r - 1))
         
-        # graph = self.create_graph()
+        graph = self.generate_graph()
         
         self.num_agents = N
         # print(self.num_agents)
         self.running = True
 
 
-    def create_graph(self):
+    def generate_graph(self):
         # Generate a graph of the streets
         self.graph = {}    # Generate graph dictionary
         for agents, x, y in self.grid.coord_iter():   # Iterate through all agents
@@ -91,8 +91,8 @@ class RandomModel(Model):
                     # Check if coordinate contains a road or a traffic light, and generate their neighbors
 
                     if isinstance(agent, Road_Agent):
-                        print(f"Road: {agent.unique_id} Direction: {agent.direction}")
-                        if(agent.direction == "Up"):
+                        # print(f"Road: {agent.unique_id} Direction: {agent.direction}")
+                        if(agent.direction == "Up"):   
                             neighbors = [n_left, n_ul, n_up, n_ur, n_right]
                         elif(agent.direction == "Right"):
                             neighbors = [n_up, n_ur, n_right, n_dr, n_down]
@@ -100,6 +100,14 @@ class RandomModel(Model):
                             neighbors = [n_right, n_dr, n_down, n_dl, n_left]
                         elif(agent.direction == "Left"):
                             neighbors = [n_down, n_dl, n_left, n_ul, n_up]
+                            
+                        neighs = ""
+                        for neighbor in neighbors:
+                            if neighbor != None:
+                                if isinstance(neighbor, Road_Agent) or isinstance(neighbor, Traffic_Light_Agent):
+                                    neighs += f"{neighbor.unique_id}, "
+                        print(f"{agent.unique_id}; {agent.direction} -> Possible neighbors: {neighs}")
+
                     elif isinstance(agent, Traffic_Light_Agent):
                         print(f"Semaphore: {agent.unique_id}")
                         #Check that relative neighbors are roads
@@ -107,41 +115,55 @@ class RandomModel(Model):
                             if isinstance(n_down, Road_Agent):
                                 if n_down.direction == "Up":
                                     neighbors = [n_left, n_ul, n_up, n_ur, n_right]
-                        elif n_left != None:
+                        if n_left != None:
                             if isinstance(n_left, Road_Agent): 
                                 if n_left.direction == "Right":
                                     neighbors = [n_up, n_ur, n_right, n_dr, n_down]
-                        elif n_up != None:
+                        if n_up != None:
                             if isinstance(n_up, Road_Agent):
                                 if n_up.direction == "Down":
                                     neighbors = [n_right, n_dr, n_down, n_dl, n_left]
-                        elif n_right != None:
+                        if n_right != None:
                             if isinstance(n_right, Road_Agent):
                                 if n_right.direction == "Left":
                                     neighbors = [n_down, n_dl, n_left, n_ul, n_up]
 
+                    # print(f"!!! Finished setting up neighbors !!!")
+                    
                     # Filter out neighbors that are not roads, or if they are roads pointing towards the current road
-                    print(f"!!! Finished setting up neighbors !!!")
-                    # Check that neighbors are roads, and discard the ones that are not roads, discard roads pointing to this one
-
-                    # print(neighbors)
                     for neighbor in neighbors:
                         if neighbor != None:
-                            print(neighbor.unique_id)
+                            # print(neighbor.unique_id)
                             if isinstance(neighbor, Road_Agent):
                                 # Filter invalid directions
                                 if (neighbor == n_up and neighbor.direction == "Down") or (neighbor == n_down and neighbor.direction == "Up") or (neighbor == n_left and neighbor.direction == "Right") or (neighbor == n_right and neighbor.direction == "Left"):
                                     neighbors.remove(neighbor)
                                 elif (neighbor == n_ul and (neighbor.direction == "Down" or neighbor.direction == "Right")) or (neighbor == n_ur and (neighbor.direction == "Down" or neighbor.direction == "Left")) or (neighbor == n_dl and (neighbor.direction == "Up" or neighbor.direction == "Right")) or (neighbor == n_dr and (neighbor.direction == "Up" or neighbor.direction == "Left")):
                                     neighbors.remove(neighbor)
+                            elif isinstance(neighbor, Traffic_Light_Agent):
+                                if agent.direction == "Up" or agent.direction == "Down":
+                                    if neighbor == n_right or neighbor == n_left:
+                                        neighbors.remove(neighbor)
+                                elif agent.direction == "Left" or agent.direction == "Right":
+                                    if neighbor == n_up or neighbor == n_down:
+                                        neighbors.remove(neighbor)
                             else:
                                 neighbors.remove(neighbor)
 
                         # Add the current agent to the dictionary with its id as the key and its neighbors as the value
                         self.graph[agent.unique_id] = neighbors
 
-        print(self.graph)
+        self.print_graph()
+        print("Finished generating graph.")
         return self.graph   
+
+    def print_graph(self):
+        for key, value in self.graph.items():
+            neighbors = ""
+            for neighbor in value:
+                if neighbor != None:
+                    neighbors += f"{neighbor.unique_id}, "
+            print(f"Agent: {key} -> {neighbors}")
 
     def step(self):
         '''Advance the model by one step.'''
