@@ -3,12 +3,6 @@ This is the project repo for the Multi-Agent Systems Modeling with Computer Grap
 
 As shown below, each vehicle agent navigates towards its destination building, following road rules such as waiting at a stopsign, changing lanes for turning, and most importantly not crashing into other vehicle agents.
 
-Trello:
-https://trello.com/b/hyh2nYDJ/tc2008b-traffic-simulator
-
-Shared Unit:
-https://drive.google.com/drive/u/0/folders/0AFf2VcX-DtjFUk9PVA
-
 (replit or .gif goes here)
 
 ## Required software
@@ -33,7 +27,7 @@ Also, make sure to download the latest version of [Visual Studio Community](http
 
 ## Getting started
 
-The current project is based on the Unity editor version 2021.3.12f1 for long term support. As for python, the project uses Python version 3.8, however the project should work with more recent stable versions. For ease of use, [Miniconda](https://docs.conda.io/en/latest/miniconda.html) will be used in order to demonstrate environment setup and library installation.
+The current project is based on the Unity editor version 2021.3.13f1 for long term support. As for python, the project uses Python version 3.8, however the project should work with more recent stable versions. For ease of use, [Miniconda](https://docs.conda.io/en/latest/miniconda.html) will be used in order to demonstrate environment setup and library installation.
 
 To get started, make sure to download this repository to your diretory of choice.
 
@@ -48,3 +42,8 @@ After creating your environment, open a new terminal, and locate yourself within
 
 The environment should now have the required libraries for the project to run. When running the project from the terminal, make sure to have the environment activated by writing `conda activate myenv`.
 
+## Resources
+
+* You can view our scheduled tasks and requirements within our [Trello](https://trello.com/b/hyh2nYDJ/tc2008b-traffic-simulator). <br />
+
+* Our [Google Drive](https://drive.google.com/drive/u/0/folders/0AFf2VcX-DtjFUk9PVA) used for class deliverables.
