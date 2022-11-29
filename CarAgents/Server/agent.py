@@ -87,3 +87,12 @@ class Road_Agent(Agent):
 
     def step(self):
         pass
+
+class Car_Spawner_Agent(Agent):
+    """
+    Car spawner agent. Spawns cars regularly in a given position.
+    """
+    def __init__(self, unique_id, model, direction="Left"):
+        super().__init__(unique_id, model)
+        self.direction = direction
+
