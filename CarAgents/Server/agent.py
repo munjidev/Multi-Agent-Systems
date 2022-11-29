@@ -57,14 +57,26 @@ class Car_Agent(Agent):
         """
         cell_contents = self.model.grid.get_cell_list_contents(pos)[0]
 
-        if isinstance(cell_contents, Car_Agent):
-            return False
-        elif isinstance(cell_contents, Traffic_Light_Agent):
-            if cell_contents.state == "red":
-                return False
+        # if isinstance(cell_contents, Car_Agent):
+        #     return False
+        # elif isinstance(cell_contents, Traffic_Light_Agent):
+        #     if cell_contents.state == "red":
+        #         return False
+        # else:
+        #     # Will accept street cells and destination cells
+        #     return True
+        
+        # Check if the desired cell has the same direction as the current cell in order to chage lanes
+        if isinstance(cell_contents, Road_Agent):
+            if cell_contents.direction == self.model.grid.get_cell_list_contents(self.pos)[0].direction:
+                return True
+        # Else check if the next cell is a traffic light on green
+        elif isinstance(cell_contents, Traffic_Light_Agent): 
+            if cell_contents.state == "green":
+                return True
         else:
-            # Will accept street cells and destination cells
-            return True
+            # The car is blocked
+            return False
 
     def calculate_route(self):
         # Generate path by calling the A* search algorithm with the current position and a randomly chosen destination
@@ -123,7 +135,7 @@ class Obstacle_Agent(Agent):
 
 class Road_Agent(Agent):
     """
-    Obstacle agent. Just to add obstacles to the grid.
+    Road agent. Just to add roads to the grid.
     """
     def __init__(self, unique_id, model, direction="Left"):
         super().__init__(unique_id, model)
