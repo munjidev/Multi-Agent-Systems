@@ -6,7 +6,6 @@ import json
 from graph import WeightedGraph
 
 cars = {}
-
 roads = {}
 cars = {}
 traffic_lights = {}
@@ -59,27 +58,9 @@ class RandomModel(Model):
                         agent = Car_Spawner_Agent(f"cs_{r*self.width+c}", self)
                         self.grid.place_agent(agent, (c, self.height - r - 1))
 
-        
-
         # Generate weighted graph for A* pathfinding
         self.graph = WeightedGraph(self.generate_graph())
         # self.print_graph()
-
-        self.num_agents = N
-        print(f"> Number of agents: {self.num_agents}")
-
-        # Add N cars to the grid at random positions on cells where a road agent is present
-        # for i in range(self.num_agents):
-        #     c = Car_Agent(f"car_{i}", self)
-        #     self.schedule.add(c)
-
-        #     pos_gen = lambda w, h: (self.random.randrange(w), self.random.randrange(h))
-        #     pos = pos_gen(self.width, self.height)
-
-        #     # Add car only if there is a road agent at the position and no other cars.
-        #     while not isinstance(self.grid.get_cell_list_contents([pos])[0], Road_Agent) or len(self.grid.get_cell_list_contents([pos])) > 1:
-        #         pos = pos_gen(self.width, self.height)
-        #     self.grid.place_agent(c, pos)
 
         # Loop through all agents and add them to their respective dictionary
         for agents, x, y in self.grid.coord_iter():
@@ -248,7 +229,10 @@ class RandomModel(Model):
                 if self.schedule.steps % 2 == 0:
                     if isinstance(agent, Car_Spawner_Agent):
                         car = agent.spawn_car()
-                        cars[car.unique_id] = car
+                        if car != None:
+                            cars[car.unique_id] = car
+                        else:
+                            print(f"Spawner {agent.unique_id} is jammed.")
         if self.schedule.steps % 10 == 0:
             for agents, x, y in self.grid.coord_iter():
                 for agent in agents:
