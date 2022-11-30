@@ -364,6 +364,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   roadPrefab: {fileID: 3240343348373693069, guid: 646fc54ff3078ce94bbdbd0f0d4c4a05, type: 3}
+  tLightPrefab: {fileID: 3240343348373693069, guid: eb343307018e13f4eb06d60652b3cbd6, type: 3}
   destinationPrefab: {fileID: 3240343348373693069, guid: 91783fbb2041dad4892362c5a375107e, type: 3}
   spawnerPrefab: {fileID: 3240343348373693069, guid: f4a83d547a1510b4cb6be645fb08faff, type: 3}
   carPrefabVariants:
