@@ -59,7 +59,7 @@ from flask import Flask, request, jsonify
 #     width = len(lines[0])-1
 #     height = len(lines)
 
-# model_params = {"N":5}
+# model_params = {"map_path":"Assets/Data/2022_base.txt"}
 
 # grid = CanvasGrid(agent_portrayal, width, height, 500, 500)
 
@@ -78,14 +78,10 @@ app = Flask("Traffic example")
 def initModel():
     global currentStep, randomModel, number_agents, number_packages, number_depots, width, height
 
-
-
     if request.method == 'POST':
 
         map_path = request.form.get('MapPath')
 
-        # width = int(request.form.get('width'))
-        # height = int(request.form.get('height'))
         currentStep = 0
 
         randomModel = RandomModel(map_path)
