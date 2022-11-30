@@ -1,6 +1,5 @@
 from mesa import Agent
 from graph import a_star_search
-from model import *
 
 class Car_Agent(Agent):
     """
@@ -19,6 +18,7 @@ class Car_Agent(Agent):
         super().__init__(unique_id, model)
         # Obtain random destination position from the list within the model
         self.destination = self.random.choice(self.model.destinations)
+        print(f"+ Agent: {self.unique_id} -> Destination: {self.destination}")
         
 
     def move(self):
@@ -26,25 +26,29 @@ class Car_Agent(Agent):
         Determines if the agent can move in the direction that was chosen
         """
         path_list, total_cost = self.calculate_route()
-        possible_steps = self.model.node_dict
+        # print(f"> PATH LIST: {path_list[0:10]}...")
         next_move = path_list[0]
-        possible_moves = possible_steps[self.pos]
+        possible_moves = self.model.node_dict[str(self.pos)]
+        # print(f"> POSSIBLE MOVES: {possible_moves[0:10]}...")
 
         all_moves = []
         all_moves.append(next_move)
         for move in possible_moves:
             # Discard path_list[0] already in possible_moves
-            if move not in possible_moves:
+            if move not in all_moves:
                 all_moves.append(move)
         
         # Cehck wether the goal position has not been reached
-        if self.pos != self.path_list[-1]:
-            # Iterate possible moves list and check wether the agent is blocked. Else if no viable path can be found, the agent is stuck, and should remain in its current position. 
+        if self.pos != path_list[-1]:
+            # Iterate possible moves list and check wether the agent is blocked. Else if no viable path can be found, the agent is stuck, and should remain in its current position.
             for pos in possible_moves:
-                if self.check_pos_contents(pos):
+                if self.check_pos_contents(pos) == "Wait":
+                    continue
+                elif self.check_pos_contents(pos) == "Go":
                     # Move agent to the position
                     self.model.grid.move_agent(self, pos)
-                else:
+                    print(f"> Agent: {self.unique_id} is moving to {pos}!")
+                elif self.check_pos_contents(pos) == "Switch":
                     pass
         else:
             # Remove self from grid
@@ -55,28 +59,25 @@ class Car_Agent(Agent):
         Checks the contents of the cell the agent is trying to move to.
         Return False if the agent is being blocked by another agent, or if the next cell contains a red light.
         """
+        # print("> Checking position contents.")
         cell_contents = self.model.grid.get_cell_list_contents(pos)[0]
-
-        # if isinstance(cell_contents, Car_Agent):
-        #     return False
-        # elif isinstance(cell_contents, Traffic_Light_Agent):
-        #     if cell_contents.state == "red":
-        #         return False
-        # else:
-        #     # Will accept street cells and destination cells
-        #     return True
         
         # Check if the desired cell has the same direction as the current cell in order to chage lanes
         if isinstance(cell_contents, Road_Agent):
-            if cell_contents.direction == self.model.grid.get_cell_list_contents(self.pos)[0].direction:
-                return True
-        # Else check if the next cell is a traffic light on green
+            if (cell_contents.direction == self.model.grid.get_cell_list_contents(pos)[0].direction) and len(self.model.grid.get_cell_list_contents(pos)) < 2:
+                # print(f"> Agent: {self.unique_id} is moving to {pos}!")
+                return "Go"
+        # Else check if the next cell is a traffic light on green or red
         elif isinstance(cell_contents, Traffic_Light_Agent): 
-            if cell_contents.state == "green":
-                return True
-        else:
-            # The car is blocked
-            return False
+            if cell_contents.state == True:
+                # print(f"> Agent: {self.unique_id} is moving to {pos}!")
+                return "Go"
+            elif cell_contents.state == False:
+                # print(f"> Agent: {self.unique_id} is waiting at {pos}!")
+                return "Wait"
+        else: 
+            # print(f"> Agent: {self.unique_id} is switching lanes to {pos}!")
+            return "Switch"
 
     def calculate_route(self):
         # Generate path by calling the A* search algorithm with the current position and a randomly chosen destination
@@ -85,11 +86,9 @@ class Car_Agent(Agent):
         # Position list in the order in which A* generated the path dictionary
         path_list = []
 
-        for key, value in path_dict:
-            if key not in path_list:
-                path_list.append(key) 
-            if value not in path_list:
-                path_list.append(value)
+        for coord in path_dict:
+            if coord not in path_list:
+                path_list.append(coord) 
         
         return path_list, total_cost
         
@@ -97,7 +96,8 @@ class Car_Agent(Agent):
         """ 
         Determines the new direction it will take, and then moves
         """
-        pass
+        self.move()
+        # pass
 
 class Traffic_Light_Agent(Agent):
     """

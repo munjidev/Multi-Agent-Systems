@@ -3,7 +3,7 @@ from mesa.time import RandomActivation
 from mesa.space import MultiGrid
 from agent import *
 import json
-import WeightedGraph
+from graph import WeightedGraph
 
 class RandomModel(Model):
     """ 
@@ -51,16 +51,15 @@ class RandomModel(Model):
                         self.grid.place_agent(agent, (c, self.height - r - 1))
         
         # Generate weighted graph for A* pathfinding
-        self.graph = WeightedGraph(self, self.generate_graph())
-        self.print_graph()
+        self.graph = WeightedGraph(self.generate_graph())
+        # self.print_graph()
 
-        # TODO: Add car agents to the model with a potential separate function...
         self.num_agents = N
-        print(self.num_agents)
+        print(f"> Number of agents: {self.num_agents}")
         # Add N cars to the grid at random positions on cells where a road agent is present
         for i in range(self.num_agents):
             c = Car_Agent(f"car_{i}", self)
-            # self.schedule.add(agent)
+            self.schedule.add(c)
 
             pos_gen = lambda w, h: (self.random.randrange(w), self.random.randrange(h))
             pos = pos_gen(self.width, self.height)
@@ -70,7 +69,6 @@ class RandomModel(Model):
                 pos = pos_gen(self.width, self.height)
             self.grid.place_agent(c, pos)
 
-        # print(self.num_agents)
         self.running = True
 
     def generate_graph(self):
@@ -158,6 +156,7 @@ class RandomModel(Model):
                             
                             # print(neighbor.unique_id)
                             if isinstance(neighbor, Road_Agent):
+
                                 # If it is any of the given 4 adjacent cells, and it doesn't point at me, include it.
                                 if (neighbor == n_up and (neighbor.direction == "Left" or neighbor.direction == "Up" or neighbor.direction == "Right")) or (neighbor == n_right and (neighbor.direction == "Up" or neighbor.direction == "Right" or neighbor.direction == "Down")) or (neighbor == n_down and (neighbor.direction == "Right" or neighbor.direction == "Down" or neighbor.direction == "Left")) or (neighbor == n_left and (neighbor.direction == "Down" or neighbor.direction == "Left" or neighbor.direction == "Up")):
                                     # print(f"    I can go to {neighbor.unique_id}!")
@@ -184,19 +183,20 @@ class RandomModel(Model):
                             #     print(f"    I can't go to a {neighbor.unique_id}")
                     # Add the current agent to the dictionary with its id as the key and its neighbors as the value
                     # self.graph[f"{agent.unique_id}{agent.pos}"] = new_neighbors
-                    
-                    self.node_dict[agent.pos] = new_neighbors
+                                
+                    self.node_dict[str(agent.pos)] = new_neighbors
 
-        print("Finished generating graph.")
-        return self.node_dict   
+        print("> Finished generating graph.")
+        # self.print_graph()
+        return self.node_dict
 
     def print_graph(self):
         for key, value in self.node_dict.items():
             neighbors = ""
             for neighbor in value:
                 if neighbor != None:
-                    neighbors += f"{neighbor.unique_id}{neighbor.pos}  |  "
-            print(f"Node {key} -->  {neighbors}")
+                    neighbors += f"{neighbor} "
+            print(f"+ Cell: {key} -> Neighbors: {neighbors}")
 
     def step(self):
         '''Advance the model by one step.'''
