@@ -2,20 +2,11 @@ from mesa import Agent
 
 class Car_Agent(Agent):
     """
-    Agent that moves randomly.
-    Attributes:
-        unique_id: Agent's ID 
-        direction: Randomly chosen direction chosen from one of eight directions
+    Car Agent: Use a* to find the shortest (and fastest) path to a given random destination.
     """
     def __init__(self, unique_id, model):
-        """
-        Creates a new random agent.
-        Args:
-            unique_id: The agent's ID
-            model: Model reference for the agent
-        """
         super().__init__(unique_id, model)
-        
+        self.in_traffic = False
 
     def move(self):
         """ 
@@ -63,11 +54,12 @@ class Destination_Agent(Agent):
     """
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
+        self.arrivals = 0
 
     def step(self):
         pass
 
-class Obstacle_Agent(Agent):
+class Building_Agent(Agent):
     """
     Obstacle agent. Just to add obstacles to the grid.
     """
@@ -92,7 +84,14 @@ class Car_Spawner_Agent(Agent):
     """
     Car spawner agent. Spawns cars regularly in a given position.
     """
-    def __init__(self, unique_id, model, direction="Left"):
+    def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
-        self.direction = direction
-
+        self.spawned = 0
+    
+    def step(self):
+        # If this cell does not have a car, spawn one after n steps
+        cell_content = self.model.grid.get_cell_list_contents([self.pos])
+        for agent in cell_content:
+            if isinstance(agent, Car_Agent):
+                print("There is already a car in the spawner")
+                return
