@@ -150,8 +150,8 @@ class Car_Spawner_Agent(Agent):
             car = Car_Agent(f"c_{self.spawned+1000}", self.model)
             self.model.grid.place_agent(car, self.pos)
             self.model.schedule.add(car)
-            print(f"> Agent: {car.unique_id} spawned at {self.pos}!")
-        return car
+            # print(f"> Agent: {car.unique_id} spawned at {self.pos}!")
+            return car
     
     def step(self):
         pass
