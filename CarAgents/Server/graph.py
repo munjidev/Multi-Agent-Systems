@@ -4,21 +4,40 @@
 # Feel free to use this code in your own projects, including commercial projects
 # License: Apache v2.0 <http://www.apache.org/licenses/LICENSE-2.0.html>
 
-from __future__ import annotations
 # some of these types are deprecated: https://www.python.org/dev/peps/pep-0585/
-from typing import Protocol, Tuple, TypeVar, Optional
+from typing import Tuple, TypeVar, Optional
 import heapq
 
 T = TypeVar('T')
 Location = TypeVar('Location')
 GridLocation = Tuple[int, int]
 
-class Graph(Protocol):
-    def neighbors(self, id: Location) -> list[Location]: pass
+class WeightedGraph:
+    def __init__(self, dict):
+        self.weighted_graph = {}
+
+        # Build dictionary
+        # print(dict)
+        for key in dict:
+            # print(f"> Key: {dict[key]}")
+            self.add_node((key, dict[key]), 1)
 
 
-class WeightedGraph(Graph):
-    def cost(self, from_id: Location, to_id: Location) -> float: pass
+    def add_node(self, node, weight):
+        self.weighted_graph[node[0]] = [node[1], weight]
+        # print(self.weighted_graph[node[0]])
+    
+
+    def neighbors(self, pos):
+        neighbor_list = self.weighted_graph[f"({pos[0]}, {pos[1]})"][0]
+        # print(f"> NEIGHBOR LIST: {neighbor_list}")
+        return neighbor_list
+    
+
+    def cost(self, pos):
+        cost = self.weighted_graph[f"({pos[0]}, {pos[1]})"][1]
+        # print(f"> COST: {cost}")
+        return self.weighted_graph[f"({pos[0]}, {pos[1]})"][1]
 
 
 class PriorityQueue:
@@ -60,7 +79,7 @@ def a_star_search(graph: WeightedGraph, start: Location, goal: Location):
             break
         
         for next in graph.neighbors(current):
-            new_cost = cost_so_far[current] + graph.cost(current, next)
+            new_cost = cost_so_far[current] + graph.cost(current)
             if next not in cost_so_far or new_cost < cost_so_far[next]:
                 # Recalculate cost, priority, and add to priority queue
                 cost_so_far[next] = new_cost
@@ -68,5 +87,6 @@ def a_star_search(graph: WeightedGraph, start: Location, goal: Location):
                 frontier.put(next, priority)
                 # Update origin
                 came_from[next] = current
-    
+    # print(f"> CAME FROM LIST: {came_from}")
+    # print(f"> COST LIST: {cost_so_far}")
     return came_from, cost_so_far
