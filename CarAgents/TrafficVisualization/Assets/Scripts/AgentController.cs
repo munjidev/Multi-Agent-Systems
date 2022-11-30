@@ -16,9 +16,11 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
 
+//CLASSES OF DISCRETE AGENT TYPES AND ATTRIBUTES |||||||||||||||||||||||||||||||||||||||||||||||
 [Serializable]
 public class AgentData
 {
+    //Class for an Agent: Contains the agent's id and position.
     public string id;
     public float x, y, z;
 
@@ -30,57 +32,68 @@ public class AgentData
         this.z = z;
     }
 }
-[Serializable]
-public class RobotData
-{
-    public string id;
-    public float x, y, z;
-    public bool has_package;
 
-    public RobotData(string id, bool has_package, float x, float y, float z)
+[Serializable]
+public class RoadData : AgentData
+{
+    //Class for a Road: Inherits from AgentData and adds the road's direction.
+    public string direction;
+
+    public RoadData(string id, float x, float y, float z, string direction) : base(id, x, y, z)
     {
-        this.id = id;
-        this.has_package = has_package;
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        this.direction = direction;
     }
 }
 
 [Serializable]
-public class DepotData
+public class CarData : AgentData
 {
-    public string id;
-    public int package_num;
-    public float x, y, z;
+    //Class for a Car: Inherits from AgentData and adds the car-in-traffic state.
+    public bool in_traffic;
 
-    public DepotData(string id, int package_num, float x, float y, float z)
+    public CarData(string id, float x, float y, float z, bool in_traffic) : base(id, x, y, z)
     {
-        this.id = id;
-        this.package_num = package_num;
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        this.in_traffic = in_traffic;
     }
 }
 
 [Serializable]
-public class PackageData
+public class TrafficLightData : AgentData
 {
-    public string id;
-    public bool picked_up;
-    public float x, y, z;
+    //Class for a Traffic Light: Inherits from AgentData and adds the traffic light's state.
+    public string state;
 
-    public PackageData(string id, bool picked_up, float x, float y, float z)
+    public TrafficLightData(string id, float x, float y, float z, string state) : base(id, x, y, z)
     {
-        this.id = id;
-        this.picked_up = picked_up;
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        this.state = state;
     }
 }
 
+[Serializable]
+public class DestinationData : AgentData
+{
+    //Class for a Destination: Inherits from AgentData and adds the destination's arrival count.
+    public int arrivals;
+
+    public DestinationData(string id, float x, float y, float z, int arrivals) : base(id, x, y, z)
+    {
+        this.arrivals = arrivals;
+    }
+}
+
+[Serializable]
+public class SpawnerData : AgentData
+{
+    //Class for a Destination: Inherits from AgentData and adds the spawner's spawn count.
+    public int spawned;
+
+    public SpawnerData(string id, float x, float y, float z, int spawned) : base(id, x, y, z)
+    {
+        this.spawned = spawned;
+    }
+}
+
+// CLASSES OF LISTS OF AGENTS: CARS, DESTINATIONS AND SPAWNERS |||||||||||||||||||||||||||||||||||||||||||||||
 [Serializable]
 public class AgentsData
 {
@@ -90,27 +103,42 @@ public class AgentsData
 }
 
 [Serializable]
-public class RobotsData
+public class RoadsData
 {
-    public List<RobotData> data;
+    public List<RoadData> data;
 
-    public RobotsData() => this.data = new List<RobotData>();
+    public RoadsData() => this.data = new List<RoadData>();
 }
 
 [Serializable]
-public class DepotsData
+public class CarsData
 {
-    public List<DepotData> data;
+    public List<CarData> data;
 
-    public DepotsData() => this.data = new List<DepotData>();
+    public CarsData() => this.data = new List<CarData>();
 }
 
 [Serializable]
-public class PackagesData
+public class TrafficLightsData
 {
-    public List<PackageData> data;
+    public List<TrafficLightData> data;
 
-    public PackagesData() => this.data = new List<PackageData>();
+    public TrafficLightsData() => this.data = new List<TrafficLightData>();
+}
+[Serializable]
+public class DestinationsData
+{
+    public List<DestinationData> data;
+
+    public DestinationsData() => this.data = new List<DestinationData>();
+}
+
+[Serializable]
+public class SpawnersData
+{
+    public List<SpawnerData> data;
+
+    public SpawnersData() => this.data = new List<SpawnerData>();
 }
 
 
@@ -118,61 +146,61 @@ public class AgentController : MonoBehaviour
 {
     // private string url = "https://agents.us-south.cf.appdomain.cloud/";
     string serverUrl = "http://localhost:8585";
-    string getAgentsEndpoint = "/getAgents";
-    string getDepotsEndpoint = "/getDepots";
-    string getPackagesEndpoint = "/getPackages";
-    string getObstaclesEndpoint = "/getObstacles";
+    string getRoadsEndpoint = "/getRoads";
+    string getCarsEndpoint = "/getCars";
+    string getTLightsEndpoint = "/getTLights";
+    string getBuildingsEndpoint = "/getBuildings";
+    string getDestinationsEndpoint = "/getDestinations";
+    string getSpawnersEndpoint = "/getSpawners";
     string sendConfigEndpoint = "/init";
     string updateEndpoint = "/update";
 
-    AgentsData obstacleData;
-    RobotsData agentsData;
-    DepotsData depotsData;
-    PackagesData packagesData;
-    Dictionary<string, GameObject> agents, depots, packages;
+    RoadsData roadsData;
+    CarsData carsData;
+    TrafficLightsData tLightsData;
+    AgentsData buildingsData;
+    DestinationsData destinationsData;
+    SpawnersData spawnersData;
+    Dictionary<string, GameObject> roads, cars, tLights, destinations, spawners;
     Dictionary<string, Vector3> prevPositions, currPositions;
 
-    bool updated = false, agentsStarted = false, depotsStarted = false, packagesStarted = false;
+    bool updated = false, roadsStarted = false, carsStarted = false, tLightsStarted = false, destinationsStarted = false, spawnersStarted = false;
 
-    public GameObject agentPrefab, obstaclePrefab, packagePrefab, depotPrefab, floor;
-    public int NAgents, NPackages, width, height;
+    public GameObject roadPrefab, tLightPrefab, destinationPrefab, spawnerPrefab;
+
+    public GameObject[] carPrefabVariants, buildingPrefabVariants;
+
+    public string MapPath = "Assets/Data/2022_base.txt";
+
     public float timeToUpdate = 5.0f;
-    private int NDepots;
+
     private float timer, dt;
 
     void Start()
     {
-        agentsData = new RobotsData();
-        depotsData = new DepotsData();
-        packagesData = new PackagesData();
-        obstacleData = new AgentsData();
+        roadsData = new RoadsData();
+        carsData = new CarsData();
+        tLightsData = new TrafficLightsData();
+        buildingsData = new AgentsData();
+        destinationsData = new DestinationsData();
+        spawnersData = new SpawnersData();
 
         prevPositions = new Dictionary<string, Vector3>();
         currPositions = new Dictionary<string, Vector3>();
 
-        agents = new Dictionary<string, GameObject>();
-        depots = new Dictionary<string, GameObject>();
-        packages = new Dictionary<string, GameObject>();
+        roads = new Dictionary<string, GameObject>();
+        cars = new Dictionary<string, GameObject>();
+        tLights = new Dictionary<string, GameObject>();
+        destinations = new Dictionary<string, GameObject>();
+        spawners = new Dictionary<string, GameObject>();
 
-        floor.transform.localScale = new Vector3((float)width/10, 1, (float)height/10);
-        floor.transform.localPosition = new Vector3((float)width/2-0.5f, 0, (float)height/2-0.5f);
-        
         timer = timeToUpdate;
 
         StartCoroutine(SendConfiguration());
     }
 
-    private void Update() 
+    private void Update()
     {
-        // End the simulation if all the packages have been placed in the depots
-        if (packages.Count == 0)
-        {
-            Debug.Log("SUCCESS!");
-            Debug.Log("All packages have been placed in the depots");
-            UnityEditor.EditorApplication.isPlaying = false;
-        }
-        
-
         if(timer < 0)
         {
             timer = timeToUpdate;
@@ -185,26 +213,17 @@ public class AgentController : MonoBehaviour
             timer -= Time.deltaTime;
             dt = 1.0f - (timer / timeToUpdate);
 
-            foreach(var agent in currPositions)
+            foreach(var car in currPositions)
             {
-                Vector3 currentPosition = agent.Value;
-                Vector3 previousPosition = prevPositions[agent.Key];
+                Vector3 currentPosition = car.Value;
+                Vector3 previousPosition = prevPositions[car.Key];
 
                 Vector3 interpolated = Vector3.Lerp(previousPosition, currentPosition, dt);
                 Vector3 direction = currentPosition - interpolated;
 
-                agents[agent.Key].transform.localPosition = interpolated;
-                if(direction != Vector3.zero) agents[agent.Key].transform.rotation = Quaternion.LookRotation(direction);
+                cars[car.Key].transform.localPosition = interpolated;
+                if(direction != Vector3.zero) cars[car.Key].transform.rotation = Quaternion.LookRotation(direction);
             }
-
-            foreach (var depot in depots)
-            {
-                //Change visible children for the given depot depending on the number of packages
-
-            }
-
-            // float t = (timer / timeToUpdate);
-            // dt = t * t * ( 3f - 2f*t);
         }
     }
  
@@ -217,22 +236,17 @@ public class AgentController : MonoBehaviour
             Debug.Log(www.error);
         else 
         {
-            // These coroutines will update the data of the agents, depots and packages
-            StartCoroutine(GetAgentsData());
-            StartCoroutine(GetDepotsData());
-            StartCoroutine(GetPackagesData());
+            StartCoroutine(GetCarsData());
+            StartCoroutine(GetTLightsData());
+            StartCoroutine(GetDestinationsData());
+            StartCoroutine(GetSpawnersData());
         }
     }
-
     IEnumerator SendConfiguration()
     {
         WWWForm form = new WWWForm();
 
-        form.AddField("NAgents", NAgents.ToString());
-        form.AddField("NPackages", NPackages.ToString());
-        form.AddField("NDepots", NDepots.ToString());
-        form.AddField("width", width.ToString());
-        form.AddField("height", height.ToString());
+        form.AddField("MapPath", MapPath.ToString());
 
         UnityWebRequest www = UnityWebRequest.Post(serverUrl + sendConfigEndpoint, form);
         www.SetRequestHeader("Content-Type", "application/x-www-form-urlencoded");
@@ -246,105 +260,179 @@ public class AgentController : MonoBehaviour
         else
         {
             Debug.Log("Configuration upload complete!");
+            StartCoroutine(GetRoadsData());
+            StartCoroutine(GetBuildingsData());
             Debug.Log("Getting Agents positions");
-            StartCoroutine(GetAgentsData());
-            Debug.Log("Getting Packages positions");
-            StartCoroutine(GetPackagesData());
-            StartCoroutine(GetObstacleData());
-            StartCoroutine(GetDepotsData());
+            StartCoroutine(GetCarsData());
+            Debug.Log("Getting Spawner and Destination information");
+            StartCoroutine(GetTLightsData());
+            StartCoroutine(GetDestinationsData());
+            StartCoroutine(GetSpawnersData());
         }
     }
-
-    IEnumerator GetAgentsData()
+    IEnumerator GetRoadsData()
     {
-        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getAgentsEndpoint);
+        // Debug.Log("Getting Roads");
+        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getRoadsEndpoint);
+        yield return www.SendWebRequest();
+ 
+        if (www.result != UnityWebRequest.Result.Success)
+        {
+            Debug.Log(www.error);
+        }
+        else 
+        {
+            roadsData = JsonUtility.FromJson<RoadsData>(www.downloadHandler.text);
+            // Debug.Log(www.downloadHandler.text);
+
+            foreach (RoadData road in roadsData.data)
+            {
+                if(!roadsStarted)
+                {
+                    roads[road.id] = Instantiate(roadPrefab, new Vector3(road.x, road.y, road.z), Quaternion.identity);
+                    //Apply rotation to the road depending on the direction
+                    if(road.direction == "Up" || road.direction == "Down")
+                    {
+                        roads[road.id].transform.Rotate(0, 90, 0);
+                    }
+
+                }
+            }
+            updated = true;
+            if(!roadsStarted) roadsStarted = true;
+        }
+    }
+    IEnumerator GetCarsData()
+    {
+        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getCarsEndpoint);
         yield return www.SendWebRequest();
  
         if (www.result != UnityWebRequest.Result.Success)
             Debug.Log(www.error);
         else
         {
-            agentsData = JsonUtility.FromJson<RobotsData>(www.downloadHandler.text);
+            carsData = JsonUtility.FromJson<CarsData>(www.downloadHandler.text);
+            //Debug.Log(www.downloadHandler.text);
 
             // Update the positions of the agents
-            foreach(RobotData agent in agentsData.data)
+            foreach(CarData car in carsData.data)
             {
-                Vector3 newAgentPosition = new Vector3(agent.x, agent.y, agent.z);
+                Vector3 newCarPosition = new Vector3(car.x, car.y, car.z);
 
-                if(!agentsStarted)
+                if(!carsStarted)
                 {
-                    prevPositions[agent.id] = newAgentPosition;
-                    agents[agent.id] = Instantiate(agentPrefab, newAgentPosition, Quaternion.identity);
+                    prevPositions[car.id] = newCarPosition;
+                    // Choose a random car prefab variant and add it to the scene
+                    GameObject carPrefab = carPrefabVariants[UnityEngine.Random.Range(0, carPrefabVariants.Length)];
+                    cars[car.id] = Instantiate(carPrefab, newCarPosition, Quaternion.identity);
                 }
                 else
                 {
                     Vector3 currentPosition = new Vector3();
-                    if(currPositions.TryGetValue(agent.id, out currentPosition))
-                        prevPositions[agent.id] = currentPosition;
-                    currPositions[agent.id] = newAgentPosition;
+                    if(currPositions.TryGetValue(car.id, out currentPosition))
+                        prevPositions[car.id] = currentPosition;
+                    currPositions[car.id] = newCarPosition;
 
-                    if(agent.has_package)
-                    {
-                        agents[agent.id].transform.GetChild(0).gameObject.SetActive(true);
-                    }
-                    else
-                    {
-                        agents[agent.id].transform.GetChild(0).gameObject.SetActive(false);
-                    }
+                    // Turn rear lights on if car is in traffic queue
+                    // if(car.in_traffic)
+                    // {
+                    //     cars[car.id].transform.GetChild(0).gameObject.SetActive(true);
+                    // }
+                    // else
+                    // {
+                    //     cars[car.id].transform.GetChild(0).gameObject.SetActive(false);
+                    // }
                 }
             }
 
             updated = true;
-            if(!agentsStarted) agentsStarted = true;
+            if(!carsStarted) carsStarted = true;
         }
     }
-
-    IEnumerator GetPackagesData()
+    IEnumerator GetTLightsData()
     {
-        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getPackagesEndpoint);
+        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getTLightsEndpoint);
         yield return www.SendWebRequest();
  
         if (www.result != UnityWebRequest.Result.Success)
             Debug.Log(www.error);
         else
         {
-            packagesData = JsonUtility.FromJson<PackagesData>(www.downloadHandler.text);
-            Debug.Log(www.downloadHandler.text);
+            tLightsData = JsonUtility.FromJson<TrafficLightsData>(www.downloadHandler.text);
+            //Debug.Log(www.downloadHandler.text);
 
-            foreach(PackageData package in packagesData.data)
+            foreach(TrafficLightData tLight in tLightsData.data)
+            {
+                if(!tLightsStarted)
+                {
+                    tLights[tLight.id] = Instantiate(tLightPrefab, new Vector3(tLight.x, tLight.y, tLight.z), Quaternion.identity);
+                    //Check if any of the road objects are neighbours of the traffic light
+                    foreach (RoadData road in roadsData.data)
+                    {
+                        if((road.x == tLight.x+1 && road.z == tLight.z) || (road.x == tLight.x-1 && road.z == tLight.z) || (road.x == tLight.x && road.z == tLight.z+1) || (road.x == tLight.x && road.z == tLight.z-1))
+                        {
+                            // Debug.Log("MATCH FOUND ++++++++++++++++++++++++++++++++++++++++++");
+                            // Debug.Log("ID "+ tLight.id + " is a neighbour of road " + road.id);
+
+                            //Check if the road points to the traffic light
+                            if(road.direction == "Up" && road.z == tLight.z-1)
+                            {
+                                // Debug.Log(tLight.id +"(" + tLight.x +", " + tLight.z + ")" + " FACING UP (" + road.id + ")");
+                                tLights[tLight.id].transform.Rotate(0, -90, 0);
+                            }
+                            else if(road.direction == "Down" && road.z == tLight.z+1)
+                            {
+                                // Debug.Log(tLight.id +"(" + tLight.x +", " + tLight.z + ")" + " FACING DOWN (" + road.id + ")");
+                                tLights[tLight.id].transform.Rotate(0, 90, 0);
+                            }
+                            else if(road.direction == "Left" && road.x == tLight.x+1)
+                            {
+                                // Debug.Log(tLight.id +"(" + tLight.x +", " + tLight.z + ")" + " FACING LEFT (" + road.id + ")");
+                                tLights[tLight.id].transform.Rotate(0, 180, 0);
+                            }
+                            else if(road.direction == "Right" && road.x == tLight.x-1)
+                            {
+                                // Debug.Log(tLight.id +"(" + tLight.x +", " + tLight.z + ")" + " FACING RIGHT (" + road.id + ")");
+                                tLights[tLight.id].transform.Rotate(0, 0, 0);
+                            }
+                        }
+                    }
+                }
+            }
+            updated = true;
+            if(!tLightsStarted) tLightsStarted = true;
+        }
+    }
+    IEnumerator GetSpawnersData()
+    {
+        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getSpawnersEndpoint);
+        yield return www.SendWebRequest();
+ 
+        if (www.result != UnityWebRequest.Result.Success)
+            Debug.Log(www.error);
+        else
+        {
+            spawnersData = JsonUtility.FromJson<SpawnersData>(www.downloadHandler.text);
+            // Debug.Log(www.downloadHandler.text);
+
+            foreach(SpawnerData spawner in spawnersData.data)
             {
 
-                if(!packagesStarted)
+                if(!spawnersStarted)
                 {
-                    Debug.Log("Creating package");
-                    packages[package.id] = Instantiate(packagePrefab, new Vector3(package.x, package.y, package.z), Quaternion.identity);
-                }
-                else
-                {
-                    Debug.Log("Package #" + package.id + " was picked up: " + package.picked_up);
-                    if (package.picked_up)
-                    {
-                        //Hide the prefab instance
-                        packages[package.id].SetActive(false);
-
-                    }
-                    else
-                    {
-                        //Show the prefab instance
-                        packages[package.id].SetActive(true);
-                    }
+                    // Debug.Log("Creating spawner");
+                    spawners[spawner.id] = Instantiate(spawnerPrefab, new Vector3(spawner.x, spawner.y, spawner.z), Quaternion.identity);
                 }
             }
 
             updated = true;
-            if(!packagesStarted) packagesStarted = true;
+            if(!spawnersStarted) spawnersStarted = true;
         }
     }
-
-    IEnumerator GetDepotsData()
+    IEnumerator GetDestinationsData()
     {
-        Debug.Log("Getting Depots data");
-        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getDepotsEndpoint);
+        // Debug.Log("Getting Destinations data");
+        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getDestinationsEndpoint);
         yield return www.SendWebRequest();
  
         if (www.result != UnityWebRequest.Result.Success)
@@ -352,92 +440,43 @@ public class AgentController : MonoBehaviour
         else
         {
             
-            depotsData = JsonUtility.FromJson<DepotsData>(www.downloadHandler.text);
+            destinationsData = JsonUtility.FromJson<DestinationsData>(www.downloadHandler.text);
             // Debug.Log(www.downloadHandler.text);
 
-            foreach(DepotData depot in depotsData.data)
+            foreach(DestinationData destination in destinationsData.data)
             {
-                if(!depotsStarted)
+                if(!destinationsStarted)
                 {
-                    Debug.Log("Creating depot");
-                    depots[depot.id] = Instantiate(depotPrefab, new Vector3(depot.x, depot.y, depot.z), Quaternion.identity);
+                    destinations[destination.id] = Instantiate(destinationPrefab, new Vector3(destination.x, destination.y, destination.z), Quaternion.identity);
                 }
-                else
-                {
-                    Debug.Log("Depot #" + depot.id + " has " + depot.package_num + " packages");
-                    if (depot.package_num==0)
-                    {
-                        depots[depot.id].transform.GetChild(0).gameObject.SetActive(false);
-                        depots[depot.id].transform.GetChild(1).gameObject.SetActive(false);
-                        depots[depot.id].transform.GetChild(2).gameObject.SetActive(false);
-                        depots[depot.id].transform.GetChild(3).gameObject.SetActive(false);
-                        depots[depot.id].transform.GetChild(4).gameObject.SetActive(false);
-
-                    }
-                    else if (depot.package_num==1)
-                    {
-                        depots[depot.id].transform.GetChild(0).gameObject.SetActive(true);
-                        depots[depot.id].transform.GetChild(1).gameObject.SetActive(false);
-                        depots[depot.id].transform.GetChild(2).gameObject.SetActive(false);
-                        depots[depot.id].transform.GetChild(3).gameObject.SetActive(false);
-                        depots[depot.id].transform.GetChild(4).gameObject.SetActive(false);
-                    }
-                    else if (depot.package_num==2)
-                    {
-                        depots[depot.id].transform.GetChild(0).gameObject.SetActive(true);
-                        depots[depot.id].transform.GetChild(1).gameObject.SetActive(true);
-                        depots[depot.id].transform.GetChild(2).gameObject.SetActive(false);
-                        depots[depot.id].transform.GetChild(3).gameObject.SetActive(false);
-                        depots[depot.id].transform.GetChild(4).gameObject.SetActive(false);
-                    }
-                    else if (depot.package_num==3)
-                    {
-                        depots[depot.id].transform.GetChild(0).gameObject.SetActive(true);
-                        depots[depot.id].transform.GetChild(1).gameObject.SetActive(true);
-                        depots[depot.id].transform.GetChild(2).gameObject.SetActive(true);
-                        depots[depot.id].transform.GetChild(3).gameObject.SetActive(false);
-                        depots[depot.id].transform.GetChild(4).gameObject.SetActive(false);
-                    }
-                    else if (depot.package_num==4)
-                    {
-                        depots[depot.id].transform.GetChild(0).gameObject.SetActive(true);
-                        depots[depot.id].transform.GetChild(1).gameObject.SetActive(true);
-                        depots[depot.id].transform.GetChild(2).gameObject.SetActive(true);
-                        depots[depot.id].transform.GetChild(3).gameObject.SetActive(true);
-                        depots[depot.id].transform.GetChild(4).gameObject.SetActive(false);
-                    }
-                    else if (depot.package_num==5)
-                    {
-                        depots[depot.id].transform.GetChild(0).gameObject.SetActive(true);
-                        depots[depot.id].transform.GetChild(1).gameObject.SetActive(true);
-                        depots[depot.id].transform.GetChild(2).gameObject.SetActive(true);
-                        depots[depot.id].transform.GetChild(3).gameObject.SetActive(true);
-                        depots[depot.id].transform.GetChild(4).gameObject.SetActive(true);
-                    }
-                }
+                // else
+                // {
+                //     Debug.Log(destination.arrivals + " vehicles have arrived at Destination " + destination.id + ".");
+                // }
             }
 
             updated = true;
-            if(!depotsStarted) depotsStarted = true;
+            if(!destinationsStarted) destinationsStarted = true;
         }
     }
-
-    IEnumerator GetObstacleData() 
+    IEnumerator GetBuildingsData() 
     {
-        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getObstaclesEndpoint);
+        Debug.Log("Getting Buildings data");
+        UnityWebRequest www = UnityWebRequest.Get(serverUrl + getBuildingsEndpoint);
         yield return www.SendWebRequest();
  
         if (www.result != UnityWebRequest.Result.Success)
             Debug.Log(www.error);
         else 
         {
-            obstacleData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
+            buildingsData = JsonUtility.FromJson<AgentsData>(www.downloadHandler.text);
+            // Debug.Log(www.downloadHandler.text);
 
-            Debug.Log(obstacleData.positions);
-
-            foreach(AgentData obstacle in obstacleData.positions)
+            foreach(AgentData building in buildingsData.positions)
             {
-                Instantiate(obstaclePrefab, new Vector3(obstacle.x, obstacle.y, obstacle.z), Quaternion.identity);
+                // Choose a random building prefab variant and add it to the scene
+                GameObject buildingPrefab = buildingPrefabVariants[UnityEngine.Random.Range(0, buildingPrefabVariants.Length)];
+                Instantiate(buildingPrefab, new Vector3(building.x, building.y, building.z), Quaternion.identity);
             }
         }
     }
