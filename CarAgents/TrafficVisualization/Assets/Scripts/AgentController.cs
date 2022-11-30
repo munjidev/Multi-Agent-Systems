@@ -312,7 +312,7 @@ public class AgentController : MonoBehaviour
         else
         {
             carsData = JsonUtility.FromJson<CarsData>(www.downloadHandler.text);
-            //Debug.Log(www.downloadHandler.text);
+            Debug.Log(www.downloadHandler.text);
 
             // Update the positions of the agents
             foreach(CarData car in carsData.data)
@@ -329,9 +329,19 @@ public class AgentController : MonoBehaviour
                 else
                 {
                     Vector3 currentPosition = new Vector3();
+                    //Check if new cars are present in scene, if not, add them
+                    if(!cars.ContainsKey(car.id))
+                    {
+                        prevPositions[car.id] = newCarPosition;
+                        GameObject carPrefab = carPrefabVariants[UnityEngine.Random.Range(0, carPrefabVariants.Length)];
+                        cars[car.id] = Instantiate(carPrefab, newCarPosition, Quaternion.identity);
+                    }
+                    
                     if(currPositions.TryGetValue(car.id, out currentPosition))
                         prevPositions[car.id] = currentPosition;
                     currPositions[car.id] = newCarPosition;
+                    // currentPosition = cars[car.id].transform.localPosition;
+                
 
                     // Turn rear lights on if car is in traffic queue
                     // if(car.in_traffic)
