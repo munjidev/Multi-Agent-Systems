@@ -43,11 +43,11 @@ class Car_Agent(Agent):
             # Iterate possible moves list and check wether the agent is blocked. Else if no viable path can be found, the agent is stuck, and should remain in its current position.
             for pos in possible_moves:
                 if self.check_pos_contents(pos) == "Wait":
-                    continue
+                    break
                 elif self.check_pos_contents(pos) == "Go":
                     # Move agent to the position
                     self.model.grid.move_agent(self, pos)
-                    print(f"> Agent: {self.unique_id} is moving to {pos}!")
+                    # print(f"> Agent: {self.unique_id} is moving to {pos}!")
                 elif self.check_pos_contents(pos) == "Switch":
                     pass
         else:
@@ -151,4 +151,14 @@ class Car_Spawner_Agent(Agent):
     def __init__(self, unique_id, model, direction="Left"):
         super().__init__(unique_id, model)
         self.direction = direction
+        self.spawned = 0
+    
+    def spawn_car(self):
+        if len(self.model.grid.get_cell_list_contents(self.pos)) < 2:
+            self.spawned += 1
+            car = Car_Agent(f"c_{self.spawned+1000}", self.model)
+            self.model.grid.place_agent(car, self.pos)
+            self.model.schedule.add(car)
+            print(f"> Agent: {car.unique_id} spawned at {self.pos}!")
+        return car
 
