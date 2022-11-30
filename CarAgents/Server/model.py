@@ -5,19 +5,26 @@ from agent import *
 import json
 from graph2 import *
 
+roads = {}
+cars = {}
+traffic_lights = {}
+destinations = {}
+spawners = {}
+buildings = {}
+
 class RandomModel(Model):
-    """ 
+    """
     Creates a new model with random agents.
     Args:
         N: Number of agents in the simulation
         height, width: The size of the grid to model
     """
-    def __init__(self, N):
+    def __init__(self, map_path):
 
         dataDictionary = json.load(open("mapDictionary.txt"))
         self.graph = Graph(self)
 
-        with open('base.txt') as baseFile:
+        with open(f"../TrafficVisualization/{map_path}") as baseFile:
             lines = baseFile.readlines()
             self.width = len(lines[0]) - 1
             self.height = len(lines)
@@ -37,7 +44,7 @@ class RandomModel(Model):
                         # Additionally, add a road agent with same direction as road before traffic light
 
                     elif col == "#":
-                        agent = Obstacle_Agent(f"ob_{r*self.width+c}", self)
+                        agent = Building_Agent(f"ob_{r*self.width+c}", self)
                         self.grid.place_agent(agent, (c, self.height - r - 1))
                     elif col == "D":
                         agent = Destination_Agent(f"d_{r*self.width+c}", self)
@@ -45,13 +52,11 @@ class RandomModel(Model):
                     elif col == "z":
                         agent = Car_Spawner_Agent(f"cs_{r*self.width+c}", self)
                         self.grid.place_agent(agent, (c, self.height - r - 1))
+
         
         graph = self.generate_graph()
-        # print(graph)
-        self.print_graph()
-
-        # TODO: Add car agents to the model with a potential separate function...
-        self.num_agents = N
+        # self.print_graph()
+        self.num_agents = 5
         print(self.num_agents)
         # Add N cars to the grid at random positions on cells where a road agent is present
         for i in range(self.num_agents):
@@ -64,9 +69,25 @@ class RandomModel(Model):
             # Add car only if there is a road agent at the position and no other cars.
             while not isinstance(self.grid.get_cell_list_contents([pos])[0], Road_Agent) or len(self.grid.get_cell_list_contents([pos])) > 1:
                 pos = pos_gen(self.width, self.height)
+            cars[c.unique_id] = c
             self.grid.place_agent(c, pos)
 
-        # print(self.num_agents)
+        # Loop through all agents and add them to their respective dictionary
+        for agents, x, y in self.grid.coord_iter():
+            for agent in agents:
+                if isinstance(agent, Road_Agent):
+                    roads[agent.unique_id] = agent
+                elif isinstance(agent, Building_Agent):
+                    buildings[agent.unique_id] = agent
+                elif isinstance(agent, Car_Agent):
+                    cars[agent.unique_id] = agent
+                elif isinstance(agent, Traffic_Light_Agent):
+                    traffic_lights[agent.unique_id] = agent
+                elif isinstance(agent, Destination_Agent):
+                    destinations[agent.unique_id] = agent
+                elif isinstance(agent, Car_Spawner_Agent):
+                    spawners[agent.unique_id] = agent
+
         self.running = True
 
     def generate_graph(self):
