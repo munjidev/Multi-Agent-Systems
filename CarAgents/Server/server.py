@@ -1,5 +1,5 @@
-from agent import Car_Agent, Traffic_Light_Agent, Destination_Agent, Obstacle_Agent, Road_Agent, Car_Spawner_Agent, agents, destinations, spawners
-from model import RandomModel
+from agent import Car_Agent, Traffic_Light_Agent, Destination_Agent, Building_Agent, Road_Agent, Car_Spawner_Agent
+from model import RandomModel, roads, buildings, cars, traffic_lights, destinations, spawners
 from mesa.visualization.modules import CanvasGrid, BarChartModule
 from mesa.visualization.ModularVisualization import ModularServer
 
@@ -43,7 +43,7 @@ from flask import Flask, request, jsonify
 #         portrayal["w"] = 0.8
 #         portrayal["h"] = 0.8
 
-#     if (isinstance(agent, Obstacle_Agent)):
+#     if (isinstance(agent, Building_Agent)):
 #         portrayal["Color"] = "cadetblue"
 #         portrayal["Layer"] = 0
 #         portrayal["w"] = 0.8
@@ -82,50 +82,63 @@ def initModel():
 
     if request.method == 'POST':
 
-        number_agents = int(request.form.get('NCars'))
+        map_path = request.form.get('MapPath')
 
-        width = int(request.form.get('width'))
-        height = int(request.form.get('height'))
+        # width = int(request.form.get('width'))
+        # height = int(request.form.get('height'))
         currentStep = 0
 
-        randomModel = RandomModel(number_agents, width, height)
+        randomModel = RandomModel(map_path)
 
         return jsonify({"message":"Parameters recieved, model initiated."})
+
+@app.route('/getRoads', methods=['GET'])
+def getRoads():
+    global randomModel
+
+    if request.method == 'GET':
+        roadData = [{"id": str(road.unique_id), "x": road.pos[0], "y":0, "z": road.pos[1], "direction": road.direction} for road in roads.values()]
+        return jsonify({'data': roadData})
 
 @app.route('/getCars', methods=['GET'])
 def getCars():
     global randomModel
 
     if request.method == 'GET':
-        agentData = [{"id": str(agent.unique_id), "x": agent.pos[0], "y":0, "z": agent.pos[1], "in_traffic": agent.has_package} for agent in agents.values()]
-        return jsonify({'data': agentData})
+        carData = [{"id": str(car.unique_id), "x": car.pos[0], "y":0, "z": car.pos[1], "in_traffic": car.in_traffic} for car in cars.values()]
+        return jsonify({'data': carData})
+
+@app.route('/getTLights', methods=['GET'])
+def getTLights():
+    global randomModel
+
+    if request.method == 'GET':
+        tlightData = [{"id": str(tlight.unique_id), "x": tlight.pos[0], "y":0, "z": tlight.pos[1], "state": tlight.state} for tlight in traffic_lights.values()]
+        return jsonify({'data': tlightData})
 
 @app.route('/getSpawners', methods=['GET'])
 def getSpawners():
     global randomModel
 
     if request.method == 'GET':
-        # Get all packages and build a list of dictionaries with their id, position and state
-        packageData = [{"id": str(spawner.unique_id), "x": spawner.x, "y": 0.3, "z":spawner.y, "spawned": spawner.spawned} for spawner in spawners.values()]
-        return jsonify({'data':packageData})
+        spawnerData = [{"id": str(spawner.unique_id), "x": spawner.pos[0], "y":0, "z": spawner.pos[1], "spawned":spawner.spawned} for spawner in spawners.values()]
+        return jsonify({'data':spawnerData})
 
 @app.route('/getDestinations', methods=['GET'])
 def getDestinations():
     global randomModel
 
     if request.method == 'GET':
-        # Get depot positions and package amounts from the global depot dictionary
-        destinationData = [{"id": str(destination.unique_id), "x": destination.x, "y":0.01, "z": destination.y, "package_num": destiantion.arrivals} for destination in destiantions.values()]
+        destinationData = [{"id": str(destination.unique_id), "x": destination.pos[0], "y":0.01, "z": destination.pos[1], "arrivals": destination.arrivals} for destination in destinations.values()]
         return jsonify({'data':destinationData})
 
-@app.route('/getObstacles', methods=['GET'])
-def getObstacles():
+@app.route('/getBuildings', methods=['GET'])
+def getBuildings():
     global randomModel
 
     if request.method == 'GET':
-        carPositions = [{"id": str(a.unique_id), "x": x, "y":0.5, "z":z} for (a, x, z) in randomModel.grid.coord_iter() if isinstance(a, ObstacleAgent)]
-
-        return jsonify({'positions':carPositions})
+        buildingPositions = [{"id": str(building.unique_id), "x": building.pos[0], "y":0.01, "z": building.pos[1]} for building in buildings.values()]
+        return jsonify({'positions':buildingPositions})
 
 @app.route('/update', methods=['GET'])
 def updateModel():
