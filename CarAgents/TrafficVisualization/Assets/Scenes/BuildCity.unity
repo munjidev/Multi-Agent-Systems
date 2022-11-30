@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657826, g: 0.49641263, b: 0.57481676, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -311,6 +311,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1457529884}
   - component: {fileID: 1457529883}
+  - component: {fileID: 1457529885}
   m_Layer: 0
   m_Name: City
   m_TagString: Untagged
@@ -325,7 +326,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1457529882}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4c7376b41e8cfe8ff91fb865d4a420f5, type: 3}
   m_Name: 
@@ -350,6 +351,32 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1457529885
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1457529882}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 983bc179e80f15347a79dd7b044746e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  roadPrefab: {fileID: 3240343348373693069, guid: 646fc54ff3078ce94bbdbd0f0d4c4a05, type: 3}
+  destinationPrefab: {fileID: 3240343348373693069, guid: 91783fbb2041dad4892362c5a375107e, type: 3}
+  spawnerPrefab: {fileID: 3240343348373693069, guid: f4a83d547a1510b4cb6be645fb08faff, type: 3}
+  carPrefabVariants:
+  - {fileID: 6491753824043405596, guid: 07c0bc0ff62f93749bf5cb035a74ccc2, type: 3}
+  - {fileID: 7313095315886544631, guid: 03e6f22cf923b4843afb1ec17de49f8d, type: 3}
+  - {fileID: 7313095315886544631, guid: 94f291e11bc1c804dbaa84a65efad184, type: 3}
+  - {fileID: 7313095315886544631, guid: fe747b170baa8374aa8ea46bbe6b1c94, type: 3}
+  - {fileID: 993549348249905, guid: 612a3d44f0b92a243a2d1432788a9ff4, type: 3}
+  buildingPrefabVariants:
+  - {fileID: 33555395739272859, guid: 10a584233fb38a918af771ddce837268, type: 3}
+  - {fileID: 33555395739272859, guid: b2f768c05e10acf4f9ee906085a98226, type: 3}
+  MapPath: Assets/Data/2022_base.txt
+  timeToUpdate: 5
 --- !u!850595691 &1515965292
 LightingSettings:
   m_ObjectHideFlags: 0
