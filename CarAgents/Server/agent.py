@@ -21,7 +21,7 @@ class Car_Agent(Agent):
         # Obtain random destination position from the list within the model
         # self.destination = self.random.choice(list(self.model.destinations.values()))
         self.destination = None
-        # self.cost = []
+        self.path = []
         
 
     def move(self):
@@ -30,9 +30,9 @@ class Car_Agent(Agent):
         """
         # self.path, self.cost = self.calculate_route()
         print(f"> Agent: {self.unique_id} -> Destination: {self.destination}")
-        self.path = self.calculate_route()
         print(f"> Path: {self.path[0:5]}...{self.path[-5:-1]}")
         next_move = self.path[0]
+        self.path = self.path[1:]
         print(f"> Next move: {next_move}")
 
         neighbors = self.model.coord_graph[str(self.pos)]
@@ -46,10 +46,12 @@ class Car_Agent(Agent):
                 for neighbor in neighbors:
                     if self.check_pos_contents(neighbor) == "Go": 
                         self.model.grid.move_agent(self, neighbor)
+                        self.path = self.calculate_route()
                         break
                     elif self.check_pos_contents(neighbor) == "Switch":
                         continue
                     else:
+                        self.path = self.calculate_route()
                         break
         else:
             # Remove self from grid

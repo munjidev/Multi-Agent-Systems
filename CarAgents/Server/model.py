@@ -225,6 +225,7 @@ class RandomModel(Model):
                     if isinstance(agent, Car_Spawner_Agent):
                         car = agent.spawn_car()
                         car.destination = self.random.choice(list(destinations.values()))
+                        car.path = car.calculate_route()
                         cars[car.unique_id] = car
         if self.schedule.steps % 10 == 0:
             for agents, x, y in self.grid.coord_iter():
