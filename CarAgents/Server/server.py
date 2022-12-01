@@ -26,7 +26,7 @@ def agent_portrayal(agent):
     
     if (isinstance(agent, Destination_Agent)):
         portrayal["Color"] = "lightgreen"
-        portrayal["Layer"] = 0
+        portrayal["Layer"] = 1
     
     if (isinstance(agent, Car_Spawner_Agent)):
         portrayal["Color"] = "yellow"
@@ -54,7 +54,7 @@ with open('base.txt') as baseFile:
     width = len(lines[0])-1
     height = len(lines)
 
-model_params = {"N":1}
+model_params = {"N":201}
 
 grid = CanvasGrid(agent_portrayal, width, height, 500, 500)
 

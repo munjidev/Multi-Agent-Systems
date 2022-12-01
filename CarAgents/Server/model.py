@@ -22,7 +22,7 @@ class RandomModel(Model):
 
         self.coord_graph = {}
 
-        with open('base_small.txt') as baseFile:
+        with open('base.txt') as baseFile:
             lines = baseFile.readlines()
             self.width = len(lines[0]) - 1
             self.height = len(lines)

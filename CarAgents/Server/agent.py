@@ -1,6 +1,6 @@
 from mesa import Agent
 # from graph import a_star_search
-from bfs import breadth_first_search
+from bfs3 import bfs_shortest_path
 
 
 class Car_Agent(Agent):
@@ -22,84 +22,92 @@ class Car_Agent(Agent):
         # self.destination = self.random.choice(list(self.model.destinations.values()))
         self.destination = None
         self.path = []
+        self.at_destination = False
         
 
     def move(self):
         """ 
         Determines if the agent can move in the direction that was chosen
         """
-        # self.path, self.cost = self.calculate_route()
-        print(f"> Agent: {self.unique_id} -> Destination: {self.destination}")
-        print(f"> Path: {self.path[0:5]}...{self.path[-5:-1]}")
-        next_move = self.path[0]
-        self.path = self.path[1:]
-        print(f"> Next move: {next_move}")
+        print(f"> Agent {self.unique_id} has destination: {self.destination}")
+        print(f"> Agent {self.unique_id} has path: {self.path[0:3]}...{self.path[-4:-1]}")
+        print(f"> Agent {self.unique_id} at {self.pos} has next move: {self.path[1]}")
 
+        # Get neighbors of current cell
         neighbors = self.model.coord_graph[str(self.pos)]
         
-        # Cehck wether the goal position has not been reached
+        # Check if goal position has been reached
         if self.pos != self.destination:
-            # Iterate possible moves list and check wether the agent is blocked. Else if no viable path can be found, the agent is stuck, and should remain in its current position.
-            if self.check_pos_contents(next_move) == "Go":
-                self.model.grid.move_agent(self, next_move)
+            if self.check_pos_contents(self.path[1]) == "Go":
+                # If the forst cell of the BFS list is evaluated as a valid move, move to that cell
+                print(f"> Agent {self.unique_id} is moving to: {self.path[1]}")
+                self.model.grid.move_agent(self, self.path[1])
+                if self.pos == self.destination:
+                    self.at_destination = True
+                    self.model.schedule.remove(self)
+                # Remove the first cell from the BFS list
+                self.path.pop(0)
             else:
+                # Else, Iterate Neighbors and pick first that is valid, also recalculate route from current position
                 for neighbor in neighbors:
                     if self.check_pos_contents(neighbor) == "Go": 
+                        print(f"> Agent {self.unique_id} is moving to: {neighbor}")
                         self.model.grid.move_agent(self, neighbor)
-                        self.path = self.calculate_route()
+                        if self.pos == self.destination:
+                            self.at_destination = True
+                            self.model.schedule.remove(self)
+                        else:
+                            self.path = self.calculate_route()
+                        print(f">>> Agent {self.unique_id} is recalculating route")
                         break
                     elif self.check_pos_contents(neighbor) == "Switch":
+                        # Evaluate next neighbor
                         continue
-                    else:
-                        self.path = self.calculate_route()
+                    elif self.check_pos_contents(neighbor) == "Wait":
+                        # If it has to wait, break from loop and evaluate original BFS cell in the next iteration
                         break
         else:
-            # Remove self from grid
-            self.model.grid.remove_agent(self)
+            self.model.schedule.remove(self)
 
     def check_pos_contents(self, pos):
-        """
-        Checks the contents of the cell the agent is trying to move to.
-        Return False if the agent is being blocked by another agent, or if the next cell contains a red light.
-        """
-        # print("> Checking position contents.")
         cell_contents = self.model.grid.get_cell_list_contents(pos)[0]
         
         # Check if the desired cell has the same direction as the current cell in order to chage lanes
         if isinstance(cell_contents, Road_Agent) or isinstance(cell_contents, Destination_Agent):  
-            if len(self.model.grid.get_cell_list_contents(pos)) < 2:
-                # print(f"> Agent: {self.unique_id} is moving to {pos}!")
+            if len(self.model.grid.get_cell_list_contents(pos)) < 2 or isinstance(cell_contents, Destination_Agent):
                 return "Go"
             else:
-                # print(f"> Agent: {self.unique_id} is switching lanes to {pos}!")
                 return "Switch"
+
         # Else check if the next cell is a traffic light on green or red
         elif isinstance(cell_contents, Traffic_Light_Agent): 
-            if cell_contents.state == True:
-                # print(f"> Agent: {self.unique_id} is moving to {pos}!")
+            if cell_contents.state == True and len(self.model.grid.get_cell_list_contents(pos)) < 2:
                 return "Go"
             elif cell_contents.state == False:
-                # print(f"> Agent: {self.unique_id} is waiting at {pos}!")
+                print(">>> Waiting")
                 return "Wait"
         else:
-            # print(f"> Agent: {self.unique_id} is waiting at {pos}!")
             return "Wait"
+
 
     def calculate_route(self):
         # Generate path by calling the A* search algorithm with the current position and a randomly chosen destination
-        print(f"> My current position: {self.pos}")
-        print(f"> My current destination: {self.destination}")
-        # path_dict, total_cost = a_star_search(self.model.graph, self.pos, self.destination)
-        path_dict = breadth_first_search(self.model.coord_graph, self.pos, self.destination)
+        print(f"> Agent {self.unique_id} current position: {self.pos}")
+        print(f"> Agent {self.unique_id} current destination: {self.destination}")
+
+        # path_dict = breadth_first_search(self.model.coord_graph, self.pos, self.destination)
+            
+        path_dict = bfs_shortest_path(self.model.coord_graph, self.pos, self.destination)
 
         # Position list in the order in which A* generated the path dictionary
         path_list = []
 
         for coord in path_dict:
             if coord not in path_list:
-                path_list.append(coord) 
-        
-        # return path_list, total_cost
+                path_list.append(coord)
+
+        print(f"> Path list: {path_list}")
+
         return path_list
         
     def step(self):
@@ -107,7 +115,6 @@ class Car_Agent(Agent):
         Determines the new direction it will take, and then moves
         """
         self.move()
-        # pass
 
 class Traffic_Light_Agent(Agent):
     """
