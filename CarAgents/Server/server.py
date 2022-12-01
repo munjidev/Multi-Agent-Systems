@@ -31,7 +31,7 @@ def agent_portrayal(agent):
     
     if (isinstance(agent, Destination_Agent)):
         portrayal["Color"] = "lightgreen"
-        portrayal["Layer"] = 0
+        portrayal["Layer"] = 1
     
     if (isinstance(agent, Car_Spawner_Agent)):
         portrayal["Color"] = "yellow"
