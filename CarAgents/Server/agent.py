@@ -1,5 +1,7 @@
 from mesa import Agent
-from graph import a_star_search
+# from graph import a_star_search
+from bfs import breadth_first_search
+
 
 class Car_Agent(Agent):
     """
@@ -17,39 +19,38 @@ class Car_Agent(Agent):
         """
         super().__init__(unique_id, model)
         # Obtain random destination position from the list within the model
-        self.destination = self.random.choice(self.model.destinations)
-        print(f"+ Agent: {self.unique_id} -> Destination: {self.destination}")
+        # self.destination = self.random.choice(list(self.model.destinations.values()))
+        self.destination = None
+        # self.cost = []
         
 
     def move(self):
         """ 
         Determines if the agent can move in the direction that was chosen
         """
-        path_list, total_cost = self.calculate_route()
-        # print(f"> PATH LIST: {path_list[0:10]}...")
-        next_move = path_list[0]
-        possible_moves = self.model.node_dict[str(self.pos)]
-        # print(f"> POSSIBLE MOVES: {possible_moves[0:10]}...")
+        # self.path, self.cost = self.calculate_route()
+        print(f"> Agent: {self.unique_id} -> Destination: {self.destination}")
+        self.path = self.calculate_route()
+        print(f"> Path: {self.path[0:5]}...{self.path[-5:-1]}")
+        next_move = self.path[0]
+        print(f"> Next move: {next_move}")
 
-        all_moves = []
-        all_moves.append(next_move)
-        for move in possible_moves:
-            # Discard path_list[0] already in possible_moves
-            if move not in all_moves:
-                all_moves.append(move)
+        neighbors = self.model.coord_graph[str(self.pos)]
         
         # Cehck wether the goal position has not been reached
-        if self.pos != path_list[-1]:
+        if self.pos != self.destination:
             # Iterate possible moves list and check wether the agent is blocked. Else if no viable path can be found, the agent is stuck, and should remain in its current position.
-            for pos in possible_moves:
-                if self.check_pos_contents(pos) == "Wait":
-                    break
-                elif self.check_pos_contents(pos) == "Go":
-                    # Move agent to the position
-                    self.model.grid.move_agent(self, pos)
-                    # print(f"> Agent: {self.unique_id} is moving to {pos}!")
-                elif self.check_pos_contents(pos) == "Switch":
-                    pass
+            if self.check_pos_contents(next_move) == "Go":
+                self.model.grid.move_agent(self, next_move)
+            else:
+                for neighbor in neighbors:
+                    if self.check_pos_contents(neighbor) == "Go": 
+                        self.model.grid.move_agent(self, neighbor)
+                        break
+                    elif self.check_pos_contents(neighbor) == "Switch":
+                        continue
+                    else:
+                        break
         else:
             # Remove self from grid
             self.model.grid.remove_agent(self)
@@ -63,10 +64,13 @@ class Car_Agent(Agent):
         cell_contents = self.model.grid.get_cell_list_contents(pos)[0]
         
         # Check if the desired cell has the same direction as the current cell in order to chage lanes
-        if isinstance(cell_contents, Road_Agent):
-            if (cell_contents.direction == self.model.grid.get_cell_list_contents(pos)[0].direction) and len(self.model.grid.get_cell_list_contents(pos)) < 2:
+        if isinstance(cell_contents, Road_Agent) or isinstance(cell_contents, Destination_Agent):  
+            if len(self.model.grid.get_cell_list_contents(pos)) < 2:
                 # print(f"> Agent: {self.unique_id} is moving to {pos}!")
                 return "Go"
+            else:
+                # print(f"> Agent: {self.unique_id} is switching lanes to {pos}!")
+                return "Switch"
         # Else check if the next cell is a traffic light on green or red
         elif isinstance(cell_contents, Traffic_Light_Agent): 
             if cell_contents.state == True:
@@ -75,13 +79,16 @@ class Car_Agent(Agent):
             elif cell_contents.state == False:
                 # print(f"> Agent: {self.unique_id} is waiting at {pos}!")
                 return "Wait"
-        else: 
-            # print(f"> Agent: {self.unique_id} is switching lanes to {pos}!")
-            return "Switch"
+        else:
+            # print(f"> Agent: {self.unique_id} is waiting at {pos}!")
+            return "Wait"
 
     def calculate_route(self):
         # Generate path by calling the A* search algorithm with the current position and a randomly chosen destination
-        path_dict, total_cost = a_star_search(self.model.graph, self.pos, self.destination)
+        print(f"> My current position: {self.pos}")
+        print(f"> My current destination: {self.destination}")
+        # path_dict, total_cost = a_star_search(self.model.graph, self.pos, self.destination)
+        path_dict = breadth_first_search(self.model.coord_graph, self.pos, self.destination)
 
         # Position list in the order in which A* generated the path dictionary
         path_list = []
@@ -90,7 +97,8 @@ class Car_Agent(Agent):
             if coord not in path_list:
                 path_list.append(coord) 
         
-        return path_list, total_cost
+        # return path_list, total_cost
+        return path_list
         
     def step(self):
         """ 
@@ -159,6 +167,7 @@ class Car_Spawner_Agent(Agent):
             car = Car_Agent(f"c_{self.spawned+1000}", self.model)
             self.model.grid.place_agent(car, self.pos)
             self.model.schedule.add(car)
-            print(f"> Agent: {car.unique_id} spawned at {self.pos}!")
-        return car
+            print(f"+ Agent: {car.unique_id} spawned at {self.pos}!")
+            return car
+        
 

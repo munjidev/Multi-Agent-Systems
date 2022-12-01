@@ -3,9 +3,10 @@ from mesa.time import RandomActivation
 from mesa.space import MultiGrid
 from agent import *
 import json
-from graph import WeightedGraph
+# from graph import WeightedGraph
 
 cars = {}
+destinations = {}
 
 class RandomModel(Model):
     """ 
@@ -14,15 +15,14 @@ class RandomModel(Model):
         N: Number of agents in the simulation
         height, width: The size of the grid to model
     """
-    destinations = []
 
     def __init__(self, N):
 
         dataDictionary = json.load(open("mapDictionary.txt"))
 
-        self.node_dict = {}
+        self.coord_graph = {}
 
-        with open('base.txt') as baseFile:
+        with open('base_small.txt') as baseFile:
             lines = baseFile.readlines()
             self.width = len(lines[0]) - 1
             self.height = len(lines)
@@ -47,14 +47,16 @@ class RandomModel(Model):
                     elif col == "D":
                         agent = Destination_Agent(f"d_{r*self.width+c}", self)
                         self.grid.place_agent(agent, (c, self.height - r - 1))
-                        self.destinations.append((c, self.height - r - 1))
+                        # self.destinations.append((c, self.height - r - 1))
+                        destinations[f"d_{r*self.width+c}"] = (c, self.height - r - 1)
                     elif col == "z":
                         agent = Car_Spawner_Agent(f"cs_{r*self.width+c}", self)
                         self.grid.place_agent(agent, (c, self.height - r - 1))
         
         # Generate weighted graph for A* pathfinding
-        self.graph = WeightedGraph(self.generate_graph())
+        # self.graph = WeightedGraph(self.generate_graph())
         # self.print_graph()
+        self.generate_graph()
 
         self.num_agents = N
         print(f"> Number of agents: {self.num_agents}")
@@ -75,7 +77,7 @@ class RandomModel(Model):
 
     def generate_graph(self):
         # Generate a graph of the streets
-        self.graph = {}    # Generate graph dictionary
+        # self.graph = {}    # Generate graph dictionary
         for agents, x, y in self.grid.coord_iter():   # Iterate through all agents
             for agent in agents:
                 if isinstance(agent, Road_Agent) or isinstance(agent, Traffic_Light_Agent) or isinstance(agent, Car_Spawner_Agent) or isinstance(agent, Destination_Agent):
@@ -184,7 +186,7 @@ class RandomModel(Model):
                                     # print(f"    I can go to {neighbor.unique_id}!")     
                                     new_neighbors.append(neighbor.pos)
 
-                            elif isinstance(neighbor, Traffic_Light_Agent):
+                            elif isinstance(neighbor, Traffic_Light_Agent) or isinstance(neighbor, Destination_Agent):
                                 if not isinstance(agent, Traffic_Light_Agent) and not isinstance(agent, Destination_Agent):
                                     if agent.direction == "Up" or agent.direction == "Down":
                                         if not (neighbor == n_right or neighbor == n_left):
@@ -200,14 +202,14 @@ class RandomModel(Model):
                             # else:
                             #     print(f"    I can't go to a {neighbor.unique_id}")
                     # Add the current agent to the dictionary with its id as the key and its neighbors as the value        
-                    self.node_dict[str(agent.pos)] = new_neighbors
+                    self.coord_graph[str(agent.pos)] = new_neighbors
 
         print("> Finished generating graph.")
-        self.print_graph()
-        return self.node_dict
+        # self.print_graph()
+        # return self.coord_graph
 
     def print_graph(self):
-        for key, value in self.node_dict.items():
+        for key, value in self.coord_graph.items():
             neighbors = ""
             for neighbor in value:
                 if neighbor != None:
@@ -219,9 +221,10 @@ class RandomModel(Model):
         self.schedule.step()
         for agents, x, y in self.grid.coord_iter():
             for agent in agents:
-                if self.schedule.steps % 2 == 0:
+                if self.schedule.steps % 2 == 0 and len(cars) < self.num_agents:
                     if isinstance(agent, Car_Spawner_Agent):
                         car = agent.spawn_car()
+                        car.destination = self.random.choice(list(destinations.values()))
                         cars[car.unique_id] = car
         if self.schedule.steps % 10 == 0:
             for agents, x, y in self.grid.coord_iter():
