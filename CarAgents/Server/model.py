@@ -20,8 +20,6 @@ class RandomModel(Model):
         N: Number of agents in the simulation
         height, width: The size of the grid to model
     """
-
-    destinations = []
     def __init__(self, map_path):
 
         dataDictionary = json.load(open("mapDictionary.txt"))
@@ -54,7 +52,6 @@ class RandomModel(Model):
                         agent = Destination_Agent(f"d_{r*self.width+c}", self)
                         self.grid.place_agent(agent, (c, self.height - r - 1))
                         # self.destinations.append((c, self.height - r - 1))
-                        destinations[f"d_{r*self.width+c}"] = (c, self.height - r - 1)
                     elif col == "z":
                         agent = Car_Spawner_Agent(f"cs_{r*self.width+c}", self)
                         self.grid.place_agent(agent, (c, self.height - r - 1))
@@ -228,13 +225,12 @@ class RandomModel(Model):
         self.schedule.step()
         for agents, x, y in self.grid.coord_iter():
             for agent in agents:
-                if self.schedule.steps % 2 == 0 and len(cars) < self.num_agents:
+                if self.schedule.steps % 2 == 0: # and len(cars) < self.num_agents:
                     if isinstance(agent, Car_Spawner_Agent):
                         car = agent.spawn_car()
-
-                        car.destination = self.random.choice(list(destinations.values()))
-                        car.path = car.calculate_route()
                         if car != None:
+                            car.destination = self.random.choice(list(destinations.values()))
+                            car.path = car.calculate_route()
                             cars[car.unique_id] = car
                         else:
                             print(f"Spawner {agent.unique_id} is jammed.")
