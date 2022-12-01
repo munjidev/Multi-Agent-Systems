@@ -310,7 +310,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1457529884}
-  - component: {fileID: 1457529883}
   - component: {fileID: 1457529885}
   m_Layer: 0
   m_Name: City
@@ -319,23 +318,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1457529883
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1457529882}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4c7376b41e8cfe8ff91fb865d4a420f5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  layout: {fileID: 4900000, guid: f1a573fc42480834e9f7a06578124453, type: 3}
-  roadPrefab: {fileID: 3240343348373693069, guid: 646fc54ff3078ce94bbdbd0f0d4c4a05, type: 3}
-  buildingPrefab: {fileID: 33555395739272859, guid: 10a584233fb38a918af771ddce837268, type: 3}
-  semaphorePrefab: {fileID: 8102729382312259521, guid: ec03db3fda9c46458bf4fb4f61cc11bd, type: 3}
-  tileSize: 1
 --- !u!4 &1457529884
 Transform:
   m_ObjectHideFlags: 0
@@ -364,7 +346,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   roadPrefab: {fileID: 3240343348373693069, guid: 646fc54ff3078ce94bbdbd0f0d4c4a05, type: 3}
-  tLightPrefab: {fileID: 3240343348373693069, guid: eb343307018e13f4eb06d60652b3cbd6, type: 3}
+  tLightPrefab: {fileID: 1220438223123018797, guid: 0c096b423f1bd9f4d98491764cecf99e, type: 3}
   destinationPrefab: {fileID: 3240343348373693069, guid: 91783fbb2041dad4892362c5a375107e, type: 3}
   spawnerPrefab: {fileID: 3240343348373693069, guid: f4a83d547a1510b4cb6be645fb08faff, type: 3}
   carPrefabVariants:
@@ -374,10 +356,16 @@ MonoBehaviour:
   - {fileID: 7313095315886544631, guid: fe747b170baa8374aa8ea46bbe6b1c94, type: 3}
   - {fileID: 993549348249905, guid: 612a3d44f0b92a243a2d1432788a9ff4, type: 3}
   buildingPrefabVariants:
-  - {fileID: 33555395739272859, guid: 10a584233fb38a918af771ddce837268, type: 3}
   - {fileID: 33555395739272859, guid: b2f768c05e10acf4f9ee906085a98226, type: 3}
+  - {fileID: 33555395739272859, guid: 10a584233fb38a918af771ddce837268, type: 3}
+  - {fileID: 7785505202679187055, guid: 35dae93a60e639f4e8f86f2f74c403c3, type: 3}
+  - {fileID: 4928205178277298891, guid: 7ceec4deb9c1c4f4a8b4a3dc3d89cdd3, type: 3}
+  - {fileID: 4961282988492796455, guid: c349ffcf253b3944ea7b5cdfd526a543, type: 3}
+  - {fileID: 5547279469853705181, guid: 771c57788661bf04e95b76726558519c, type: 3}
+  - {fileID: 3240343348373693069, guid: 373491f0b404e8341bfa5e04f49667cf, type: 3}
+  - {fileID: 3240343348373693069, guid: 8e2ea52bea60fe343a67093e1f92be29, type: 3}
   MapPath: Assets/Data/2022_base.txt
-  timeToUpdate: 5
+  timeToUpdate: 0.2
 --- !u!850595691 &1515965292
 LightingSettings:
   m_ObjectHideFlags: 0

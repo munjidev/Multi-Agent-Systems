@@ -25,8 +25,8 @@ Transform:
   m_GameObject: {fileID: 7313095315886544631}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 2251175331428214839}
   m_Father: {fileID: 0}
@@ -107,6 +107,18 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -4450536759890801738, guid: 0703ad6c3f6471f46a37a1faab6f7bcc, type: 3}
+      propertyPath: m_Intensity
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: -2701114346260339781, guid: 0703ad6c3f6471f46a37a1faab6f7bcc, type: 3}
+      propertyPath: m_Intensity
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: -1071359958148435772, guid: 0703ad6c3f6471f46a37a1faab6f7bcc, type: 3}
+      propertyPath: m_Intensity
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 0703ad6c3f6471f46a37a1faab6f7bcc, type: 3}
       propertyPath: m_Name
       value: car4
@@ -118,6 +130,10 @@ PrefabInstance:
     - target: {fileID: 2800250516343163423, guid: 0703ad6c3f6471f46a37a1faab6f7bcc, type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5783882096753140000, guid: 0703ad6c3f6471f46a37a1faab6f7bcc, type: 3}
+      propertyPath: m_Intensity
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 8700725330082129686, guid: 0703ad6c3f6471f46a37a1faab6f7bcc, type: 3}
       propertyPath: m_IsActive
