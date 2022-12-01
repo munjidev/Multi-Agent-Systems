@@ -20,7 +20,7 @@ class Car_Agent(Agent):
         """ 
         Determines if the agent can move in the direction that was chosen
         """
-        print(f"> Agent {self.unique_id} has destination: {self.destination}")
+        print(f"> Agent {self.unique_id} has destination: {self.destination.pos}")
         print(f"> Agent {self.unique_id} has path: {self.path[0:3]}...{self.path[-4:-1]}")
         print(f"> Agent {self.unique_id} at {self.pos} has next move: {self.path[1]}")
 
@@ -28,12 +28,12 @@ class Car_Agent(Agent):
         neighbors = self.model.coord_graph[str(self.pos)]
         
         # Check if goal position has been reached
-        if self.pos != self.destination:
+        if self.pos != self.destination.pos:
             if self.check_pos_contents(self.path[1]) == "Go":
                 # If the forst cell of the BFS list is evaluated as a valid move, move to that cell
                 print(f"> Agent {self.unique_id} is moving to: {self.path[1]}")
                 self.model.grid.move_agent(self, self.path[1])
-                if self.pos == self.destination:
+                if self.pos == self.destination.pos:
                     self.at_destination = True
                     self.model.schedule.remove(self)
                 # Remove the first cell from the BFS list
@@ -44,7 +44,7 @@ class Car_Agent(Agent):
                     if self.check_pos_contents(neighbor) == "Go": 
                         print(f"> Agent {self.unique_id} is moving to: {neighbor}")
                         self.model.grid.move_agent(self, neighbor)
-                        if self.pos == self.destination:
+                        if self.pos == self.destination.pos:
                             self.at_destination = True
                             self.model.schedule.remove(self)
                         else:
@@ -84,11 +84,9 @@ class Car_Agent(Agent):
     def calculate_route(self):
         # Generate path by calling the A* search algorithm with the current position and a randomly chosen destination
         print(f"> Agent {self.unique_id} current position: {self.pos}")
-        print(f"> Agent {self.unique_id} current destination: {self.destination}")
-
-        # path_dict = breadth_first_search(self.model.coord_graph, self.pos, self.destination)
+        print(f"> Agent {self.unique_id} current destination: {self.destination.pos}")
             
-        path_dict = bfs_shortest_path(self.model.coord_graph, self.pos, self.destination)
+        path_dict = bfs_shortest_path(self.model.coord_graph, self.pos, self.destination.pos)
 
         # Position list in the order in which A* generated the path dictionary
         path_list = []
@@ -117,8 +115,6 @@ class Traffic_Light_Agent(Agent):
         self.timeToChange = timeToChange
 
     def step(self):
-        # if self.model.schedule.steps % self.timeToChange == 0:
-        #     self.state = not self.state
         pass
 
 class Destination_Agent(Agent):
@@ -164,7 +160,7 @@ class Car_Spawner_Agent(Agent):
     def spawn_car(self):
         if len(self.model.grid.get_cell_list_contents(self.pos)) < 2:
             self.spawned += 1
-            car = Car_Agent(f"c_{self.spawned+1000}", self.model)
+            car = Car_Agent(f"c_{self.unique_id}{self.spawned+1000}", self.model)
             self.model.grid.place_agent(car, self.pos)
             self.model.schedule.add(car)
 
