@@ -5,25 +5,16 @@ from bfs3 import bfs_shortest_path
 
 class Car_Agent(Agent):
     """
-    Agent that moves randomly.
-    Attributes:
-        unique_id: Agent's ID 
-        direction: Randomly chosen direction chosen from one of eight directions
+    Car Agent: Use a* to find the shortest (and fastest) path to a given random destination.
     """
     def __init__(self, unique_id, model):
-        """
-        Creates a new random agent.
-        Args:
-            unique_id: The agent's ID
-            model: Model reference for the agent
-        """
         super().__init__(unique_id, model)
+        self.in_traffic = False
         # Obtain random destination position from the list within the model
-        # self.destination = self.random.choice(list(self.model.destinations.values()))
+        
         self.destination = None
         self.path = []
         self.at_destination = False
-        
 
     def move(self):
         """ 
@@ -136,11 +127,12 @@ class Destination_Agent(Agent):
     """
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
+        self.arrivals = 0
 
     def step(self):
         pass
 
-class Obstacle_Agent(Agent):
+class Building_Agent(Agent):
     """
     Obstacle agent. Just to add obstacles to the grid.
     """
@@ -165,9 +157,8 @@ class Car_Spawner_Agent(Agent):
     """
     Car spawner agent. Spawns cars regularly in a given position.
     """
-    def __init__(self, unique_id, model, direction="Left"):
+    def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
-        self.direction = direction
         self.spawned = 0
     
     def spawn_car(self):
@@ -176,7 +167,9 @@ class Car_Spawner_Agent(Agent):
             car = Car_Agent(f"c_{self.spawned+1000}", self.model)
             self.model.grid.place_agent(car, self.pos)
             self.model.schedule.add(car)
+
             print(f"+ Agent: {car.unique_id} spawned at {self.pos}!")
             return car
-        
-
+    
+    def step(self):
+        pass

@@ -6,23 +6,29 @@ import json
 # from graph import WeightedGraph
 
 cars = {}
+roads = {}
+cars = {}
+traffic_lights = {}
 destinations = {}
+spawners = {}
+buildings = {}
 
 class RandomModel(Model):
-    """ 
+    """
     Creates a new model with random agents.
     Args:
         N: Number of agents in the simulation
         height, width: The size of the grid to model
     """
 
-    def __init__(self, N):
+    destinations = []
+    def __init__(self, map_path):
 
         dataDictionary = json.load(open("mapDictionary.txt"))
 
         self.coord_graph = {}
 
-        with open('base.txt') as baseFile:
+        with open(f"../TrafficVisualization/{map_path}") as baseFile:
             lines = baseFile.readlines()
             self.width = len(lines[0]) - 1
             self.height = len(lines)
@@ -42,7 +48,7 @@ class RandomModel(Model):
                         # Additionally, add a road agent with same direction as road before traffic light
 
                     elif col == "#":
-                        agent = Obstacle_Agent(f"ob_{r*self.width+c}", self)
+                        agent = Building_Agent(f"ob_{r*self.width+c}", self)
                         self.grid.place_agent(agent, (c, self.height - r - 1))
                     elif col == "D":
                         agent = Destination_Agent(f"d_{r*self.width+c}", self)
@@ -52,27 +58,28 @@ class RandomModel(Model):
                     elif col == "z":
                         agent = Car_Spawner_Agent(f"cs_{r*self.width+c}", self)
                         self.grid.place_agent(agent, (c, self.height - r - 1))
-        
+
         # Generate weighted graph for A* pathfinding
         # self.graph = WeightedGraph(self.generate_graph())
         # self.print_graph()
         self.generate_graph()
 
-        self.num_agents = N
-        print(f"> Number of agents: {self.num_agents}")
-        # Add N cars to the grid at random positions on cells where a road agent is present
-        # for i in range(self.num_agents):
-        #     c = Car_Agent(f"car_{i}", self)
-        #     self.schedule.add(c)
-
-        #     pos_gen = lambda w, h: (self.random.randrange(w), self.random.randrange(h))
-        #     pos = pos_gen(self.width, self.height)
-
-        #     # Add car only if there is a road agent at the position and no other cars.
-        #     while not isinstance(self.grid.get_cell_list_contents([pos])[0], Road_Agent) or len(self.grid.get_cell_list_contents([pos])) > 1:
-        #         pos = pos_gen(self.width, self.height)
-        #     self.grid.place_agent(c, pos)
-
+        # Loop through all agents and add them to their respective dictionary
+        for agents, x, y in self.grid.coord_iter():
+            for agent in agents:
+                if isinstance(agent, Road_Agent):
+                    roads[agent.unique_id] = agent
+                elif isinstance(agent, Building_Agent):
+                    buildings[agent.unique_id] = agent
+                elif isinstance(agent, Car_Agent):
+                    cars[agent.unique_id] = agent
+                elif isinstance(agent, Traffic_Light_Agent):
+                    traffic_lights[agent.unique_id] = agent
+                elif isinstance(agent, Destination_Agent):
+                    destinations[agent.unique_id] = agent
+                elif isinstance(agent, Car_Spawner_Agent):
+                    spawners[agent.unique_id] = agent
+                    
         self.running = True
 
     def generate_graph(self):
@@ -178,7 +185,7 @@ class RandomModel(Model):
                                     if neighbor == n_up or neighbor == n_right or neighbor == n_down or neighbor == n_left:
                                         new_neighbors.append(neighbor.pos)
                                 # If it is any of the given 4 adjacent cells, and it doesn't point at me, include it.
-                                if (neighbor == n_up and (neighbor.direction == "Left" or neighbor.direction == "Up" or neighbor.direction == "Right")) or (neighbor == n_right and (neighbor.direction == "Up" or neighbor.direction == "Right" or neighbor.direction == "Down")) or (neighbor == n_down and (neighbor.direction == "Right" or neighbor.direction == "Down" or neighbor.direction == "Left")) or (neighbor == n_left and (neighbor.direction == "Down" or neighbor.direction == "Left" or neighbor.direction == "Up")):
+                                elif (neighbor == n_up and (neighbor.direction == "Left" or neighbor.direction == "Up" or neighbor.direction == "Right")) or (neighbor == n_right and (neighbor.direction == "Up" or neighbor.direction == "Right" or neighbor.direction == "Down")) or (neighbor == n_down and (neighbor.direction == "Right" or neighbor.direction == "Down" or neighbor.direction == "Left")) or (neighbor == n_left and (neighbor.direction == "Down" or neighbor.direction == "Left" or neighbor.direction == "Up")):
                                     # print(f"    I can go to {neighbor.unique_id}!")
                                     new_neighbors.append(neighbor.pos)
                                 # If any of the 4 diagonals points outwards, include it
@@ -224,9 +231,13 @@ class RandomModel(Model):
                 if self.schedule.steps % 2 == 0 and len(cars) < self.num_agents:
                     if isinstance(agent, Car_Spawner_Agent):
                         car = agent.spawn_car()
+
                         car.destination = self.random.choice(list(destinations.values()))
                         car.path = car.calculate_route()
-                        cars[car.unique_id] = car
+                        if car != None:
+                            cars[car.unique_id] = car
+                        else:
+                            print(f"Spawner {agent.unique_id} is jammed.")
         if self.schedule.steps % 10 == 0:
             for agents, x, y in self.grid.coord_iter():
                 for agent in agents:
