@@ -183,7 +183,7 @@ class RandomModel(Model):
                                     if neighbor == n_up or neighbor == n_right or neighbor == n_down or neighbor == n_left:
                                         new_neighbors.append(neighbor.pos)
                                 # If it is any of the given 4 adjacent cells, and it doesn't point at me, include it.
-                                if (neighbor == n_up and (neighbor.direction == "Left" or neighbor.direction == "Up" or neighbor.direction == "Right")) or (neighbor == n_right and (neighbor.direction == "Up" or neighbor.direction == "Right" or neighbor.direction == "Down")) or (neighbor == n_down and (neighbor.direction == "Right" or neighbor.direction == "Down" or neighbor.direction == "Left")) or (neighbor == n_left and (neighbor.direction == "Down" or neighbor.direction == "Left" or neighbor.direction == "Up")):
+                                elif (neighbor == n_up and (neighbor.direction == "Left" or neighbor.direction == "Up" or neighbor.direction == "Right")) or (neighbor == n_right and (neighbor.direction == "Up" or neighbor.direction == "Right" or neighbor.direction == "Down")) or (neighbor == n_down and (neighbor.direction == "Right" or neighbor.direction == "Down" or neighbor.direction == "Left")) or (neighbor == n_left and (neighbor.direction == "Down" or neighbor.direction == "Left" or neighbor.direction == "Up")):
                                     # print(f"    I can go to {neighbor.unique_id}!")
                                     new_neighbors.append(neighbor.pos)
                                 # If any of the 4 diagonals points outwards, include it
