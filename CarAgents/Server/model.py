@@ -132,7 +132,6 @@ class RandomModel(Model):
                         elif(agent.direction == "Left"):
                             neighbors = [n_down, n_dl, n_left, n_ul, n_up]
 
-
                     elif isinstance(agent, Traffic_Light_Agent):
                         #Check that relative neighbors are roads
                         if n_down != None:
@@ -172,7 +171,7 @@ class RandomModel(Model):
                                 neighbors.append(n_left)
 
                     new_neighbors = []
-                    # Filter out neighbors that are not roads, or if they are roads pointing towards the current road
+                    # Filter out neighbors that are not roads or destinations, or if they are roads pointing towards the current road
                     for neighbor in neighbors:
                         if neighbor != None:
                             
