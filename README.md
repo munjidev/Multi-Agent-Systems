@@ -3,8 +3,6 @@ This is the project repo for the Multi-Agent Systems Modeling with Computer Grap
 
 As shown below, each vehicle agent navigates towards its destination building, following road rules such as waiting at a stopsign, changing lanes for turning, and most importantly not crashing into other vehicle agents.
 
-(replit or .gif goes here)
-
 ## Required software
 
 It is necessary to install the Unity editor version 2021.3.13f1 via the Unity Hub. You can [downlaod the hub](https://unity.com/download#how-get-started) via Unity's website.
