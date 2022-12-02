@@ -42,6 +42,27 @@ After creating your environment, open a new terminal, and locate yourself within
 
 The environment should now have the required libraries for the project to run. When running the project from the terminal, make sure to have the environment activated by writing `conda activate myenv`.
 
+## How to run both projects:
+
+For the `PackageRobots` project, make sure to set up the flask server with the port 8585.
+
+For the Unity side, make sure to open the `/TrafficVisualization` directory as a Unity project.
+
+In order to run the project, make sure to have your conda environment activated and set up, and be located within the `/Server` Directory. Then, input the following command:
+
+`flask server.py`
+
+Then, run the unity project by pressing the play button.
+
+For a 2D visualization, you can de-comment the section within the server.py file, and comment the entire unity api below it. Then, run the following command: 
+
+`python server.py`
+
+The same holds for the `CarAgents` project, however, both mesa and flask server files have been separated for ease of use. Simply make sure to set the flask server port to 8585, and have the Unity project open (beware, it has the same name as the PackageRobots Unity directory). Then, you should be able to run the following commands:
+
+`flask flask_server.py` or <br />
+`python mesa_server.py`
+
 ## Resources
 
 * You can view our scheduled tasks and requirements within our [Trello](https://trello.com/b/hyh2nYDJ/tc2008b-traffic-simulator). <br />
