@@ -10,8 +10,6 @@ class Car_Agent(Agent):
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
         self.in_traffic = False
-        # Obtain random destination position from the list within the model
-        
         self.destination = None
         self.path = []
         self.at_destination = False
@@ -25,22 +23,23 @@ class Car_Agent(Agent):
             self.path = self.calculate_route()
             pass
         else:
-            # print(f"PATH ---------------------- {self.path}")
             # print(f"> Agent {self.unique_id} has destination: {self.destination.pos}")
             # print(f"> Agent {self.unique_id} has path: {self.path[0:3]}...{self.path[-4:-1]}")
             # print(f"> Agent {self.unique_id} at {self.pos} has next move: {self.path[1]}")
-        
+
             # Get neighbors of current cell
             neighbors = self.model.coord_graph[str(self.pos)]
-            
+
             # Check if goal position has been reached
             if self.pos != self.destination.pos:
                 if self.check_pos_contents(self.path[1]) == "Go":
-                    # If the forst cell of the BFS list is evaluated as a valid move, move to that cell
+                    # If the first cell of the BFS list is evaluated as a valid move, move to that cell
                     # print(f"> Agent {self.unique_id} is moving to: {self.path[1]}")
                     self.model.grid.move_agent(self, self.path[1])
                     if self.pos == self.destination.pos:
                         self.at_destination = True
+                        self.destination.reached_destination()
+                        print(f"These arrivals {self.destination.arrivals}")
                         self.model.schedule.remove(self)
                     # Remove the first cell from the BFS list
                     self.path.pop(0)
@@ -49,21 +48,29 @@ class Car_Agent(Agent):
                     for neighbor in neighbors:
                         if self.check_pos_contents(neighbor) == "Go": 
                             # print(f"> Agent {self.unique_id} is moving to: {neighbor}")
+                            self.in_traffic = False
                             self.model.grid.move_agent(self, neighbor)
                             if self.pos == self.destination.pos:
                                 self.at_destination = True
+                                self.destination.reached_destination()
+                                print(f"These arrivals {self.destination.arrivals}")
                                 self.model.schedule.remove(self)
                             else:
                                 self.path = self.calculate_route()
-                            print(f">>> Agent {self.unique_id} is recalculating route")
+                            # print(f">>> Agent {self.unique_id} is recalculating route")
                             break
                         elif self.check_pos_contents(neighbor) == "Switch":
                             # Evaluate next neighbor
                             continue
                         elif self.check_pos_contents(neighbor) == "Wait":
                             # If it has to wait, break from loop and evaluate original BFS cell in the next iteration
+                            self.in_traffic = True
                             break
             else:
+                self.at_destination = True
+                # Call destination's method to increment the number of cars that have reached it
+                self.destination.reached_destination()
+                print(f"These arrivals {self.destination.arrivals}")
                 self.model.schedule.remove(self)
 
     def check_pos_contents(self, pos):
@@ -81,9 +88,11 @@ class Car_Agent(Agent):
             if cell_contents.state == True and len(self.model.grid.get_cell_list_contents(pos)) < 2:
                 return "Go"
             elif cell_contents.state == False:
-                print(">>> Waiting")
+                self.in_traffic = True
+                # print(">>> Waiting")
                 return "Wait"
         else:
+            self.in_traffic = True
             return "Wait"
 
 
@@ -96,6 +105,7 @@ class Car_Agent(Agent):
         # print(f"> Agent {self.unique_id} path_dict: {path_dict}")
         # Position list in the order in which A* generated the path dictionary
         path_list = []
+
         if path_dict != None:
             for coord in path_dict:
                 if coord not in path_list:
@@ -104,6 +114,7 @@ class Car_Agent(Agent):
             print(">>> Path not found")
             pass
         print(f"> Path list: {path_list}")
+
 
         return path_list
         
@@ -115,7 +126,7 @@ class Car_Agent(Agent):
 
 class Traffic_Light_Agent(Agent):
     """
-    Obstacle agent. Just to add obstacles to the grid.
+    Traffic Light Agent. Interpolates between two states, green and red.
     """
     def __init__(self, unique_id, model, state = False, timeToChange = 10):
         super().__init__(unique_id, model)
@@ -127,18 +138,22 @@ class Traffic_Light_Agent(Agent):
 
 class Destination_Agent(Agent):
     """
-    Obstacle agent. Just to add obstacles to the grid.
+    Destination Agent. Hosts cars that have reached their destination and keeps track of the number of cars that have arrived.
     """
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
         self.arrivals = 0
+
+    def reached_destination(self):
+        print(f"A car has arrived at {self.unique_id}")
+        self.arrivals += 1
 
     def step(self):
         pass
 
 class Building_Agent(Agent):
     """
-    Obstacle agent. Just to add obstacles to the grid.
+    Building Agent. Renders a building on the grid.
     """
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
@@ -148,7 +163,7 @@ class Building_Agent(Agent):
 
 class Road_Agent(Agent):
     """
-    Road agent. Just to add roads to the grid.
+    Road agent. Creates a road on the grid.
     """
     def __init__(self, unique_id, model, direction="Left"):
         super().__init__(unique_id, model)
@@ -159,7 +174,7 @@ class Road_Agent(Agent):
 
 class Car_Spawner_Agent(Agent):
     """
-    Car spawner agent. Spawns cars regularly in a given position.
+    Car spawner agent. Spawns cars regularly in a given position. Keeps track of the number of cars that have been spawned.
     """
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
@@ -172,7 +187,7 @@ class Car_Spawner_Agent(Agent):
             self.model.grid.place_agent(car, self.pos)
             self.model.schedule.add(car)
 
-            print(f"+ Agent: {car.unique_id} spawned at {self.pos}!")
+            # print(f"+ Agent: {car.unique_id} spawned at {self.pos}!")
             return car
     
     def step(self):

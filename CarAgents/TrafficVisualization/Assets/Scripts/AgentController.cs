@@ -176,6 +176,8 @@ public class AgentController : MonoBehaviour
 
     private float timer, dt;
 
+    private int carsSpawned, arrivals;
+
     void Start()
     {
         roadsData = new RoadsData();
@@ -259,12 +261,12 @@ public class AgentController : MonoBehaviour
         }
         else
         {
-            Debug.Log("Configuration upload complete!");
+            // Debug.Log("Configuration upload complete!");
             StartCoroutine(GetRoadsData());
             StartCoroutine(GetBuildingsData());
-            Debug.Log("Getting Agents positions");
+            // Debug.Log("Getting Agents positions");
             StartCoroutine(GetCarsData());
-            Debug.Log("Getting Spawner and Destination information");
+            // Debug.Log("Getting Spawner and Destination information");
             StartCoroutine(GetTLightsData());
             StartCoroutine(GetDestinationsData());
             StartCoroutine(GetSpawnersData());
@@ -295,7 +297,6 @@ public class AgentController : MonoBehaviour
                     {
                         roads[road.id].transform.Rotate(0, 90, 0);
                     }
-
                 }
             }
             updated = true;
@@ -311,6 +312,7 @@ public class AgentController : MonoBehaviour
             Debug.Log(www.error);
         else
         {
+            carsSpawned = 0;
             carsData = JsonUtility.FromJson<CarsData>(www.downloadHandler.text);
 
             // Update the positions of the agents
@@ -352,7 +354,9 @@ public class AgentController : MonoBehaviour
                     //     cars[car.id].transform.GetChild(0).gameObject.SetActive(false);
                     // }
                 }
+                carsSpawned++;
             }
+            Debug.Log("CARS SPAWNED: " + carsSpawned);
 
             updated = true;
             if(!carsStarted) carsStarted = true;
@@ -467,7 +471,7 @@ public class AgentController : MonoBehaviour
             Debug.Log(www.error);
         else
         {
-            
+            arrivals = 0;
             destinationsData = JsonUtility.FromJson<DestinationsData>(www.downloadHandler.text);
             // Debug.Log(www.downloadHandler.text);
 
@@ -477,11 +481,13 @@ public class AgentController : MonoBehaviour
                 {
                     destinations[destination.id] = Instantiate(destinationPrefab, new Vector3(destination.x, destination.y, destination.z), Quaternion.identity);
                 }
-                // else
-                // {
-                //     Debug.Log(destination.arrivals + " vehicles have arrived at Destination " + destination.id + ".");
-                // }
+                else
+                {
+                    // Debug.Log(destination.arrivals + " vehicles have arrived at Destination " + destination.id + ".");
+                    arrivals += destination.arrivals;
+                }
             }
+            Debug.Log("TOTAL ARRIVALS: " + arrivals);
 
             updated = true;
             if(!destinationsStarted) destinationsStarted = true;
@@ -489,7 +495,7 @@ public class AgentController : MonoBehaviour
     }
     IEnumerator GetBuildingsData() 
     {
-        Debug.Log("Getting Buildings data");
+        // Debug.Log("Getting Buildings data");
         UnityWebRequest www = UnityWebRequest.Get(serverUrl + getBuildingsEndpoint);
         yield return www.SendWebRequest();
  
