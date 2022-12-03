@@ -20,45 +20,51 @@ class Car_Agent(Agent):
         """ 
         Determines if the agent can move in the direction that was chosen
         """
-        print(f"> Agent {self.unique_id} has destination: {self.destination.pos}")
-        print(f"> Agent {self.unique_id} has path: {self.path[0:3]}...{self.path[-4:-1]}")
-        print(f"> Agent {self.unique_id} at {self.pos} has next move: {self.path[1]}")
-
-        # Get neighbors of current cell
-        neighbors = self.model.coord_graph[str(self.pos)]
-        
-        # Check if goal position has been reached
-        if self.pos != self.destination.pos:
-            if self.check_pos_contents(self.path[1]) == "Go":
-                # If the forst cell of the BFS list is evaluated as a valid move, move to that cell
-                print(f"> Agent {self.unique_id} is moving to: {self.path[1]}")
-                self.model.grid.move_agent(self, self.path[1])
-                if self.pos == self.destination.pos:
-                    self.at_destination = True
-                    self.model.schedule.remove(self)
-                # Remove the first cell from the BFS list
-                self.path.pop(0)
-            else:
-                # Else, Iterate Neighbors and pick first that is valid, also recalculate route from current position
-                for neighbor in neighbors:
-                    if self.check_pos_contents(neighbor) == "Go": 
-                        print(f"> Agent {self.unique_id} is moving to: {neighbor}")
-                        self.model.grid.move_agent(self, neighbor)
-                        if self.pos == self.destination.pos:
-                            self.at_destination = True
-                            self.model.schedule.remove(self)
-                        else:
-                            self.path = self.calculate_route()
-                        print(f">>> Agent {self.unique_id} is recalculating route")
-                        break
-                    elif self.check_pos_contents(neighbor) == "Switch":
-                        # Evaluate next neighbor
-                        continue
-                    elif self.check_pos_contents(neighbor) == "Wait":
-                        # If it has to wait, break from loop and evaluate original BFS cell in the next iteration
-                        break
+        if len(self.path) == 0:
+            print(f">>> Agent {self.unique_id} is recalculating route")
+            self.path = self.calculate_route()
+            pass
         else:
-            self.model.schedule.remove(self)
+            # print(f"PATH ---------------------- {self.path}")
+            # print(f"> Agent {self.unique_id} has destination: {self.destination.pos}")
+            # print(f"> Agent {self.unique_id} has path: {self.path[0:3]}...{self.path[-4:-1]}")
+            # print(f"> Agent {self.unique_id} at {self.pos} has next move: {self.path[1]}")
+        
+            # Get neighbors of current cell
+            neighbors = self.model.coord_graph[str(self.pos)]
+            
+            # Check if goal position has been reached
+            if self.pos != self.destination.pos:
+                if self.check_pos_contents(self.path[1]) == "Go":
+                    # If the forst cell of the BFS list is evaluated as a valid move, move to that cell
+                    # print(f"> Agent {self.unique_id} is moving to: {self.path[1]}")
+                    self.model.grid.move_agent(self, self.path[1])
+                    if self.pos == self.destination.pos:
+                        self.at_destination = True
+                        self.model.schedule.remove(self)
+                    # Remove the first cell from the BFS list
+                    self.path.pop(0)
+                else:
+                    # Else, Iterate Neighbors and pick first that is valid, also recalculate route from current position
+                    for neighbor in neighbors:
+                        if self.check_pos_contents(neighbor) == "Go": 
+                            # print(f"> Agent {self.unique_id} is moving to: {neighbor}")
+                            self.model.grid.move_agent(self, neighbor)
+                            if self.pos == self.destination.pos:
+                                self.at_destination = True
+                                self.model.schedule.remove(self)
+                            else:
+                                self.path = self.calculate_route()
+                            print(f">>> Agent {self.unique_id} is recalculating route")
+                            break
+                        elif self.check_pos_contents(neighbor) == "Switch":
+                            # Evaluate next neighbor
+                            continue
+                        elif self.check_pos_contents(neighbor) == "Wait":
+                            # If it has to wait, break from loop and evaluate original BFS cell in the next iteration
+                            break
+            else:
+                self.model.schedule.remove(self)
 
     def check_pos_contents(self, pos):
         cell_contents = self.model.grid.get_cell_list_contents(pos)[0]
@@ -83,18 +89,20 @@ class Car_Agent(Agent):
 
     def calculate_route(self):
         # Generate path by calling the A* search algorithm with the current position and a randomly chosen destination
-        print(f"> Agent {self.unique_id} current position: {self.pos}")
-        print(f"> Agent {self.unique_id} current destination: {self.destination.pos}")
+        # print(f"> Agent {self.unique_id} current position: {self.pos}")
+        # print(f"> Agent {self.unique_id} current destination: {self.destination.pos}")
             
         path_dict = bfs_shortest_path(self.model.coord_graph, self.pos, self.destination.pos)
-
+        # print(f"> Agent {self.unique_id} path_dict: {path_dict}")
         # Position list in the order in which A* generated the path dictionary
         path_list = []
-
-        for coord in path_dict:
-            if coord not in path_list:
-                path_list.append(coord)
-
+        if path_dict != None:
+            for coord in path_dict:
+                if coord not in path_list:
+                    path_list.append(coord)
+        else:
+            print(">>> Path not found")
+            pass
         print(f"> Path list: {path_list}")
 
         return path_list
