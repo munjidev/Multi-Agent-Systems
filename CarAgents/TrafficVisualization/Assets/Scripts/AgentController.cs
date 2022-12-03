@@ -61,9 +61,9 @@ public class CarData : AgentData
 public class TrafficLightData : AgentData
 {
     //Class for a Traffic Light: Inherits from AgentData and adds the traffic light's state.
-    public string state;
+    public bool state;
 
-    public TrafficLightData(string id, float x, float y, float z, string state) : base(id, x, y, z)
+    public TrafficLightData(string id, float x, float y, float z, bool state) : base(id, x, y, z)
     {
         this.state = state;
     }
@@ -314,7 +314,6 @@ public class AgentController : MonoBehaviour
         {
             carsSpawned = 0;
             carsData = JsonUtility.FromJson<CarsData>(www.downloadHandler.text);
-            // Debug.Log(www.downloadHandler.text);
 
             // Update the positions of the agents
             foreach(CarData car in carsData.data)
@@ -410,6 +409,25 @@ public class AgentController : MonoBehaviour
                                 tLights[tLight.id].transform.Rotate(0, 0, 0);
                             }
                         }
+                    }
+                }
+                else
+                {
+                    GameObject flicker = tLights[tLight.id].transform.GetChild(0).gameObject;
+                    // Change the color of the traffic light depending on the state
+                    if(tLight.state)
+                    {    
+                        //If state is true, hide yellow and red child objects and show green
+                        flicker.transform.GetChild(0).gameObject.SetActive(true);
+                        flicker.transform.GetChild(1).gameObject.SetActive(false);
+                        flicker.transform.GetChild(2).gameObject.SetActive(false);
+                    }
+                    else
+                    {
+                        //If state is false, hide green and yellow child objects and show red
+                        flicker.transform.GetChild(0).gameObject.SetActive(false);
+                        flicker.transform.GetChild(1).gameObject.SetActive(true);
+                        flicker.transform.GetChild(2).gameObject.SetActive(false);
                     }
                 }
             }
