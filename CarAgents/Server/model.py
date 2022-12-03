@@ -225,13 +225,18 @@ class RandomModel(Model):
         # Get total number of cars spawned and total number of arrived cars
         total_cars_spawned = 0
         total_arrivals = 0
+        # cars_circulating = 0
         for spawner in spawners.values():
             total_cars_spawned += spawner.spawned
         for destination in destinations.values():
             total_arrivals += destination.arrivals
+        # Count cars with at_destination == False
+        # for car in cars.values():
+        #     if not car.at_destination:
+        #         cars_circulating += 1
         print(f"Cars spawned: {total_cars_spawned}")
+        # print(f"Currently circulating: {cars_circulating}")
         print(f"Total arrivals: {total_arrivals}")
-
         for agents, x, y in self.grid.coord_iter():
             for agent in agents:
                 if self.schedule.steps % 2 == 0: # and len(cars) < self.num_agents:
