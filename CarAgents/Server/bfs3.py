@@ -10,7 +10,8 @@ def bfs_shortest_path(graph, start, goal):
  
     # return path if start is goal
     if start == goal:
-        return "That was easy! Start = goal"
+        print( "That was easy! Start = goal")
+        return None
  
     # keeps looping until all possible paths have been checked
     while queue:
@@ -34,4 +35,5 @@ def bfs_shortest_path(graph, start, goal):
             explored.append(node)
  
     # in case there's no path between the 2 nodes
-    return "So sorry, but a connecting path doesn't exist :("
+    print("So sorry, but a connecting path doesn't exist :(")
+    return None
