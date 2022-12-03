@@ -222,6 +222,16 @@ class RandomModel(Model):
     def step(self):
         '''Advance the model by one step.'''
         self.schedule.step()
+        # Get total number of cars spawned and total number of arrived cars
+        total_cars_spawned = 0
+        total_arrivals = 0
+        for spawner in spawners.values():
+            total_cars_spawned += spawner.spawned
+        for destination in destinations.values():
+            total_arrivals += destination.arrivals
+        print(f"Cars spawned: {total_cars_spawned}")
+        print(f"Total arrivals: {total_arrivals}")
+
         for agents, x, y in self.grid.coord_iter():
             for agent in agents:
                 if self.schedule.steps % 2 == 0: # and len(cars) < self.num_agents:
