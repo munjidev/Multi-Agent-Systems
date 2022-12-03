@@ -35,5 +35,5 @@ def bfs_shortest_path(graph, start, goal):
             explored.append(node)
  
     # in case there's no path between the 2 nodes
-    print("So sorry, but a connecting path doesn't exist :(")
+    # print("So sorry, but a connecting path doesn't exist :(")
     return None

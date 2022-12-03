@@ -19,7 +19,7 @@ class Car_Agent(Agent):
         Determines if the agent can move in the direction that was chosen
         """
         if len(self.path) == 0:
-            print(f">>> Agent {self.unique_id} is recalculating route")
+            # print(f">>> Agent {self.unique_id} is recalculating route")
             self.path = self.calculate_route()
             pass
         else:
@@ -111,9 +111,9 @@ class Car_Agent(Agent):
                 if coord not in path_list:
                     path_list.append(coord)
         else:
-            print(">>> Path not found")
+            # print(">>> Path not found")
             pass
-        print(f"> Path list: {path_list}")
+        # print(f"> Path list: {path_list}")
 
 
         return path_list
