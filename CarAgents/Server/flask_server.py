@@ -35,7 +35,7 @@ def getCars():
     global randomModel
 
     if request.method == 'GET':
-        carData = [{"id": str(car.unique_id), "x": car.pos[0], "y":0, "z": car.pos[1], "in_traffic": car.in_traffic} for car in cars.values()]
+        carData = [{"id": str(car.unique_id), "x": car.pos[0], "y":0, "z": car.pos[1], "in_traffic": car.in_traffic, "at_destination": car.at_destination} for car in cars.values()]
         return jsonify({'data': carData})
 
 @app.route('/getTLights', methods=['GET'])
@@ -60,6 +60,7 @@ def getDestinations():
 
     if request.method == 'GET':
         destinationData = [{"id": str(destination.unique_id), "x": destination.pos[0], "y":0.01, "z": destination.pos[1], "arrivals": destination.arrivals} for destination in destinations.values()]
+        print(destinationData)
         return jsonify({'data':destinationData})
 
 @app.route('/getBuildings', methods=['GET'])
